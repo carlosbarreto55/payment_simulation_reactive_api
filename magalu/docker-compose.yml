@@ -1,0 +1,40 @@
+version : '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: magalu-mysql-container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: payment_sim_db
+      MYSQL_USER: payment_sim_user
+      MYSQL_PASSWORD: example
+      TZ: UTC
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=200
+      - --innodb_buffer_pool_size=512M
+    networks:
+      - payment-sim-network
+    healthcheck:
+        test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pexample" ]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+volumes:
+  mysql_data:
+    driver: local
+networks:
+  payment-sim-network:
+    driver: bridge
+
+
+

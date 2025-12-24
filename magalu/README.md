@@ -263,7 +263,7 @@ magalu/
 │   │   │       │   ├── security/       # Utilitários de segurança
 │   │   │       │   ├── idempotency/    # Idempotency Key
 │   │   │       │   └── audit/          # Auditoria
-│   │   │       └── infrastructure/
+│   │   │       └── checkout/
 │   │   │           ├── database/       # Configurações DB
 │   │   │           └── messaging/      # Eventos assíncronos
 │   │   └── resources/
