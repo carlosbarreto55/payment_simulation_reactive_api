@@ -1,7 +1,11 @@
 package checkout.domain.auth.service;
 
 
+import checkout.common.exception.InvalidCredentialsException;
+import checkout.common.exception.ResourceNotFoundException;
+import checkout.common.exception.UserAlreadyExistsException;
 import checkout.domain.auth.dto.AuthResponse;
+import checkout.domain.auth.dto.LoginRequest;
 import checkout.domain.auth.dto.RegisterRequest;
 import checkout.domain.auth.entity.Role;
 import checkout.domain.auth.entity.User;
@@ -35,7 +39,7 @@ public class AuthService {
     public Mono<AuthResponse> register(RegisterRequest request) {
         return userRepository.findByEmail(request.getEmail())
                 .flatMap(existingUser ->
-                        Mono.error(new IllegalArgumentException("Email already registered"))) // create specific exception on global exception handler
+                        Mono.error(new UserAlreadyExistsException("Email already registered"))) // create specific exception on global exception handler
                 .switchIfEmpty(
                         createUser(request)
                                 .flatMap(user ->
@@ -64,7 +68,7 @@ public class AuthService {
     private Mono<Role> assignRoleByDefault(User user) {
         return roleRepository.findByName(DEFAULT_ROLE_NAME)
                 .switchIfEmpty(
-                        Mono.error(new IllegalStateException("There was no Role found on Role table on the database"))
+                        Mono.error(new RuntimeException("There was no Role found on Role table on the database"))
                 )
                 .flatMap(role -> {
                     UserRole userRole = UserRole.builder()
@@ -91,4 +95,30 @@ public class AuthService {
     private boolean isValidPassword(String rawPassword, String encodedPassword) {
         return encoder.matches(rawPassword, encodedPassword);
     }
+
+    public Mono<AuthResponse> login(LoginRequest request) {
+        return userRepository.findByEmail(request.getEmail())
+                .switchIfEmpty(
+                        Mono.defer(() -> {
+                            log.warn("Login failed: User not found for email: {}", request.getEmail());
+                            return Mono.error(new InvalidCredentialsException());
+                        })
+                ).flatMap(user -> {
+                    if (!isValidPassword(request.getPassword(), user.getPasswordHash())) {
+                        log.warn("Wrong password");
+                        return Mono.error(new InvalidCredentialsException("Invalid password"));
+                    }
+
+                    if (user.getEnabled() == false) {
+                        log.warn("User is not enabled");
+                        return Mono.error(new InvalidCredentialsException("User is disabled"));
+                    }
+                    return jwtService.generateAccessToken(user)
+                            .map(this::buildAuthResponse);
+                });
+    }
+
+
+
+
 }
