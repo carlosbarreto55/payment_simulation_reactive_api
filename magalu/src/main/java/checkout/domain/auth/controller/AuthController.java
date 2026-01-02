@@ -1,8 +1,9 @@
 package checkout.domain.auth.controller;
 
-import checkout.domain.auth.dto.AuthResponse;
-import checkout.domain.auth.dto.LoginRequest;
-import checkout.domain.auth.dto.RegisterRequest;
+import checkout.domain.auth.dto.LoginResponseDto;
+import checkout.domain.auth.dto.LoginRequestDto;
+import checkout.domain.auth.dto.RegisterRequestDto;
+import checkout.domain.auth.dto.RegisterResponseDto;
 import checkout.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,17 +25,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public Mono<ResponseEntity<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+    public Mono<ResponseEntity<RegisterResponseDto>> register(@Valid @RequestBody RegisterRequestDto request) {
         log.info("Register request for email: {}", request.getEmail());
         return authService.register(request)
-                .map(authResponse -> ResponseEntity.status(HttpStatus.CREATED).body(authResponse));
+                .map(registerResponse -> ResponseEntity.status(HttpStatus.CREATED).body(registerResponse));
     }
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public Mono<ResponseEntity<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto request) {
         log.info("Login request for email: {}", request.getEmail());
         return authService.login(request)
                 .map(ResponseEntity::ok);
     }
 }
-

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class LoginRequestDto {
 
     @NotBlank
     @Email
@@ -15,5 +15,4 @@ public class RegisterRequest {
     @Size(min = 5, max = 255)
     @NotBlank
     private String password;
-
 }

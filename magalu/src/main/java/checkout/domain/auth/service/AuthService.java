@@ -4,12 +4,15 @@ package checkout.domain.auth.service;
 import checkout.common.exception.InvalidCredentialsException;
 import checkout.common.exception.ResourceNotFoundException;
 import checkout.common.exception.UserAlreadyExistsException;
-import checkout.domain.auth.dto.AuthResponse;
-import checkout.domain.auth.dto.LoginRequest;
-import checkout.domain.auth.dto.RegisterRequest;
+import checkout.domain.auth.dto.LoginResponseDto;
+import checkout.domain.auth.dto.LoginRequestDto;
+import checkout.domain.auth.dto.RegisterRequestDto;
+import checkout.domain.auth.dto.RegisterResponseDto;
+import checkout.domain.auth.entity.RefreshToken;
 import checkout.domain.auth.entity.Role;
 import checkout.domain.auth.entity.User;
 import checkout.domain.auth.entity.UserRole;
+import checkout.domain.auth.repository.RefreshTokenRepository;
 import checkout.domain.auth.repository.RoleRepository;
 import checkout.domain.auth.repository.UserRepository;
 import checkout.domain.auth.repository.UserRoleRepository;
@@ -19,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import static checkout.common.ApiConstants.DEFAULT_ROLE_NAME;
 
@@ -34,25 +38,32 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder encoder;
+    private final LocalDateTime refreshTokenExpirationDate = LocalDateTime.now().plusDays(1);
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public Mono<AuthResponse> register(RegisterRequest request) {
+    public Mono<RegisterResponseDto> register(RegisterRequestDto request) {
         return userRepository.findByEmail(request.getEmail())
                 .flatMap(existingUser ->
-                        Mono.error(new UserAlreadyExistsException("Email already registered"))) // create specific exception on global exception handler
+                        Mono.error(new UserAlreadyExistsException("Email already registered")))
                 .switchIfEmpty(
                         createUser(request)
                                 .flatMap(user ->
                                         assignRoleByDefault(user)
-                                                .then(jwtService.generateAccessToken(user))
-                                                .map(this::buildAuthResponse)
+                                                .thenReturn(buildRegisterResponse(user))
                                 )
                 )
-                .cast(AuthResponse.class);
+                .cast(RegisterResponseDto.class);
     }
 
+    private RegisterResponseDto buildRegisterResponse(User user) {
+        RegisterResponseDto response = new RegisterResponseDto();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        return response;
+    }
 
-    public Mono<User> createUser(RegisterRequest request) {
+    public Mono<User> createUser(RegisterRequestDto request) {
         String hashedPassword = hashPassword(request.getPassword());
 
         User user = User.builder()
@@ -68,7 +79,7 @@ public class AuthService {
     private Mono<Role> assignRoleByDefault(User user) {
         return roleRepository.findByName(DEFAULT_ROLE_NAME)
                 .switchIfEmpty(
-                        Mono.error(new RuntimeException("There was no Role found on Role table on the database"))
+                        Mono.error(new ResourceNotFoundException("There was no Role found on Role table on the database"))
                 )
                 .flatMap(role -> {
                     UserRole userRole = UserRole.builder()
@@ -80,14 +91,6 @@ public class AuthService {
                 });
     }
 
-    private AuthResponse buildAuthResponse(String token) {
-        AuthResponse response = new AuthResponse();
-        response.setAccessToken(token);
-        response.setTokenType("Bearer");
-        response.setExpiresIn(3600L);
-        return response;
-    }
-
     public String hashPassword(String rawPassword) {
         return encoder.encode(rawPassword);
     }
@@ -96,7 +99,7 @@ public class AuthService {
         return encoder.matches(rawPassword, encodedPassword);
     }
 
-    public Mono<AuthResponse> login(LoginRequest request) {
+    public Mono<LoginResponseDto> login(LoginRequestDto request) {
         return userRepository.findByEmail(request.getEmail())
                 .switchIfEmpty(
                         Mono.defer(() -> {
@@ -113,12 +116,36 @@ public class AuthService {
                         log.warn("User is not enabled");
                         return Mono.error(new InvalidCredentialsException("User is disabled"));
                     }
-                    return jwtService.generateAccessToken(user)
-                            .map(this::buildAuthResponse);
+                    return generateTokens(user)
+                            .flatMap(tokens -> saveRefreshToken(tokens.getT2(), user)
+                                    .thenReturn(buildLoginResponse(tokens.getT1(), tokens.getT2())));
                 });
     }
 
+    private LoginResponseDto buildLoginResponse(String accessToken, String refreshToken){
+        LoginResponseDto response = new LoginResponseDto();
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        response.setTokenType("Bearer");
+        response.setExpiresIn(3600L);
 
+        return response;
+    }
 
+    public Mono<Tuple2<String, String>> generateTokens(User user) {
+        return Mono.zip(
+                jwtService.generateAccessToken(user),
+                jwtService.generateRefreshToken(user)
+        );
+    }
 
+    public Mono<Void> saveRefreshToken(String refreshToken, User user) {
+        RefreshToken token = RefreshToken.builder()
+                .userId(user.getId())
+                .token(refreshToken)
+                .expirationDate(refreshTokenExpirationDate)
+                .revoked(false)
+                .build();
+        return refreshTokenRepository.save(token).then();
+    }
 }
