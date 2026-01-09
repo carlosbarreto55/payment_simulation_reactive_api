@@ -3,7 +3,7 @@
 #DISCLAIMER: PROJETO EM FASE INICIAL DE DESENVOLVIMENTO!
 
 Projeto de portfólio em desenvolvimento, inspirado em sistemas reais de checkout e pagamentos utilizados por grandes empresas.
-## 🎯 Objetivo
+## Objetivo
 
 Construir um backend reativo que represente um **sistema completo de checkout e pagamentos**, cobrindo:
 
