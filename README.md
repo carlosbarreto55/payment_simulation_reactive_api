@@ -1,7 +1,8 @@
-# 🛒 Plataforma de Checkout e Pagamentos Reativa
+# Plataforma de Checkout e Pagamentos Reativa
 
-Backend profissional de checkout e pagamentos desenvolvido com **Java** e **Spring Boot**, utilizando programação reativa com **Spring WebFlux** e **MySQL (R2DBC)**. Este projeto simula um sistema real de checkout, inspirado em arquiteturas usadas por grandes empresas brasileiras como bancos, fintechs, marketplaces e varejistas.
+#DISCLAIMER: PROJETO EM FASE INICIAL DE DESENVOLVIMENTO!
 
+Projeto de portfólio em desenvolvimento, inspirado em sistemas reais de checkout e pagamentos utilizados por grandes empresas.
 ## 🎯 Objetivo
 
 Construir um backend reativo que represente um **sistema completo de checkout e pagamentos**, cobrindo:
@@ -15,7 +16,7 @@ Construir um backend reativo que represente um **sistema completo de checkout e 
 - ✅ Idempotência em operações críticas
 - ✅ Auditoria e observabilidade
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizado em empresas grandes:
 
@@ -45,7 +46,7 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
 - **RBAC**: Controle de acesso baseado em roles
 - **Separação por Domínio**: Organização clara por contexto de negócio
 
-## 📦 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### Backend
 - **Java 17+**
@@ -65,10 +66,6 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
 - **Spring Security WebFlux**
 - **HMAC** (Assinatura de webhooks)
 
-### Observabilidade
-- **Spring Boot Actuator**
-- **Micrometer** + **Prometheus**
-- **Logs estruturados**
 
 ### Testes
 - **JUnit 5**
@@ -79,11 +76,10 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
 ### DevOps
 - **Docker** + **Docker Compose**
 - **GitHub Actions** (CI/CD)
-- **GitHub Container Registry** (GHCR)
 
-## 🧩 Domínios do Sistema
+## Domínios do Sistema
 
-### 🔐 Identity & Auth
+### Identity & Auth
 - Registro e login de usuários
 - JWT com access e refresh tokens
 - Perfis de acesso:
@@ -92,12 +88,12 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
   - `SUPPORT` - Suporte técnico
   - `SYSTEM` - Sistema interno
 
-### 👤 Customers & Merchants
+### Customers & Merchants
 - Gestão de clientes (KYC simplificado)
 - Gestão de lojistas e suas lojas
 - Relacionamento cliente → pedido → pagamento
 
-### 🛒 Orders
+### Orders
 - Criação de pedidos
 - Estados do pedido:
   - `CREATED` - Criado
@@ -108,7 +104,7 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
 - Reserva de estoque (simulada)
 - Cancelamento seguro
 
-### 💳 Payments (Core)
+### Payments (Core)
 - Criação de **Payment Intent**
 - Métodos de pagamento:
   - **PIX**
@@ -119,31 +115,7 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
 - Prevenção de cobrança duplicada
 - Suporte a estorno
 
-### 🛡️ Risk / Antifraude
-- Regras de risco simuladas
-- Decisões:
-  - `APPROVE` - Aprovado
-  - `REVIEW` - Em análise
-  - `DENY` - Negado
-- Aprovação manual via backoffice (perfil SUPPORT)
-
-### 📣 Notifications
-- Eventos de negócio:
-  - Pedido pago
-  - Pagamento recusado
-  - Estorno realizado
-- Entrega via:
-  - E-mail (mock)
-  - Webhook do lojista
-- Implementação com **Outbox Pattern**
-
-### 🔗 Webhooks
-- Configuração de webhooks por loja
-- Assinatura HMAC para segurança
-- Idempotência de webhooks
-- Retry automático com backoff exponencial
-
-## 📐 Regras de Negócio Principais
+## Regras de Negócio Principais
 
 ### Autenticação & Acesso
 - Um usuário só pode acessar pedidos que ele criou, exceto:
@@ -169,21 +141,13 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
   - Registra motivo técnico e de negócio
 - Estornos só são permitidos para pagamentos `APPROVED`
 
-### Antifraude
-- Pagamentos acima de um valor limite entram automaticamente em `REVIEW`
-- Múltiplas tentativas de pagamento em curto período aumentam score de risco
-- Pagamentos `DENY`:
-  - Não podem ser reprocessados
-  - Exigem criação de novo pedido
-- Apenas usuários `SUPPORT` podem aprovar manualmente um `REVIEW`
-
 ### Webhooks & Eventos
 - Webhooks devem conter assinatura HMAC válida
 - Webhooks são **idempotentes** (reprocessamento seguro)
 - Falhas de entrega não perdem eventos (Outbox Pattern)
 - Eventos são entregues **pelo menos uma vez**
 
-## 🚀 Como Executar
+## Como Executar
 
 ### Pré-requisitos
 - Java 17 ou superior
@@ -235,49 +199,8 @@ spring.r2dbc.password=sua_senha
 ./mvnw spring-boot:run
 ```
 
-### Verificar Saúde da Aplicação
 
-```bash
-curl http://localhost:8080/actuator/health
-```
-
-## 📁 Estrutura do Projeto
-
-```
-magalu/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/magalu/checkout/
-│   │   │       ├── config/              # Configurações (Security, R2DBC)
-│   │   │       ├── domain/
-│   │   │       │   ├── auth/           # Identity & Auth
-│   │   │       │   ├── customer/       # Customers & Merchants
-│   │   │       │   ├── order/          # Orders
-│   │   │       │   ├── payment/        # Payments (Core)
-│   │   │       │   ├── risk/           # Risk / Antifraude
-│   │   │       │   ├── notification/   # Notifications
-│   │   │       │   └── webhook/        # Webhooks
-│   │   │       ├── shared/
-│   │   │       │   ├── exception/      # Exceções customizadas
-│   │   │       │   ├── security/       # Utilitários de segurança
-│   │   │       │   ├── idempotency/    # Idempotency Key
-│   │   │       │   └── audit/          # Auditoria
-│   │   │       └── checkout/
-│   │   │           ├── database/       # Configurações DB
-│   │   │           └── messaging/      # Eventos assíncronos
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── db/migration/           # Migrações Flyway
-│   └── test/
-│       └── java/                       # Testes
-├── pom.xml
-├── docker-compose.yml
-├── Dockerfile
-└── README.md
-```
-
-## 🔌 Endpoints Principais
+## Endpoints Principais
 
 ### Autenticação
 - `POST /api/auth/register` - Registrar novo usuário
@@ -303,7 +226,7 @@ magalu/
 - `POST /api/webhooks/config` - Configurar webhook
 - `GET /api/webhooks/deliveries` - Listar entregas
 
-## 🧪 Testes
+## Testes
 
 ### Executar Testes
 ```bash
@@ -318,7 +241,7 @@ magalu/
 ### Testes de Integração
 Os testes de integração utilizam **Testcontainers** para criar um ambiente MySQL isolado.
 
-## 🔄 CI/CD
+## CI/CD
 
 O projeto possui pipeline de CI/CD configurado com **GitHub Actions**:
 
@@ -343,7 +266,7 @@ http://localhost:8080/actuator/health
 http://localhost:8080/actuator/metrics
 ```
 
-## 🔐 Segurança
+## Segurança
 
 - **JWT** com refresh token
 - **Spring Security WebFlux**
@@ -352,7 +275,7 @@ http://localhost:8080/actuator/metrics
 - **Assinatura HMAC** em webhooks
 - **Validação de entrada** em todos os endpoints
 
-## 📝 Padrões Aplicados
+## Padrões Aplicados
 
 - ✅ **Programação Reativa** (Reactor)
 - ✅ **Outbox Pattern** (Eventos assíncronos)
@@ -362,21 +285,10 @@ http://localhost:8080/actuator/metrics
 - ✅ **Separação de camadas** (API, domínio, infra)
 - ✅ **Domain-Driven Design** (DDD)
 
-## 🤝 Contribuindo
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## Autor
 
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 👨‍💻 Autor
-
-Desenvolvido como projeto de portfólio profissional, demonstrando conhecimento em:
+Desenvolvido como projeto de portfólio, demonstrando conhecimento em:
 - Arquitetura de sistemas reativos
 - Spring WebFlux e programação reativa
 - Padrões de design e arquitetura
@@ -390,6 +302,3 @@ Desenvolvido como projeto de portfólio profissional, demonstrando conhecimento 
 - [Reactor Documentation](https://projectreactor.io/docs/core/release/reference/)
 - [Flyway Documentation](https://flywaydb.org/documentation/)
 
----
-
-⭐ Se este projeto foi útil para você, considere dar uma estrela!
