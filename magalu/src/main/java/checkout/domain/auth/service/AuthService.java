@@ -2,10 +2,12 @@ package checkout.domain.auth.service;
 
 
 import checkout.common.exception.InvalidCredentialsException;
+import checkout.common.exception.InvalidTokenException;
 import checkout.common.exception.ResourceNotFoundException;
 import checkout.common.exception.UserAlreadyExistsException;
 import checkout.domain.auth.dto.LoginResponseDto;
 import checkout.domain.auth.dto.LoginRequestDto;
+import checkout.domain.auth.dto.RefreshTokenRequestDto;
 import checkout.domain.auth.dto.RegisterRequestDto;
 import checkout.domain.auth.dto.RegisterResponseDto;
 import checkout.domain.auth.entity.RefreshToken;
@@ -147,5 +149,50 @@ public class AuthService {
                 .revoked(false)
                 .build();
         return refreshTokenRepository.save(token).then();
+    }
+
+    @Transactional
+    public Mono<LoginResponseDto> refreshToken(RefreshTokenRequestDto request) {
+        return jwtService.validateRefreshToken(request.getRefreshToken())
+                .flatMap(claims -> {
+                    Long userId = claims.get("userId", Long.class);
+                    return refreshTokenRepository.findByToken(request.getRefreshToken())
+                            .switchIfEmpty(Mono.error(new InvalidTokenException("Refresh token not found")))
+                            .flatMap(refreshToken -> {
+                                if (isTokenExpired(refreshToken) || isTokenRevoked(refreshToken)) {
+                                    return Mono.error(new InvalidTokenException("Refresh token expired or revoked"));
+                                }
+                                return userRepository.findById(userId)
+                                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("User not found")))
+                                        .flatMap(user -> {
+                                            return generateTokens(user)
+                                                    .flatMap(tokens -> {
+                                                        String newAccessToken = tokens.getT1();
+                                                        String newRefreshToken = tokens.getT2();
+                                                        return saveRefreshToken(newRefreshToken, user)
+                                                                .then(revokeRefreshToken(request.getRefreshToken()))
+                                                                .thenReturn(buildLoginResponse(newAccessToken, newRefreshToken));
+                                                    });
+                                        });
+                            });
+                });
+    }
+
+    private static Boolean isTokenExpired(RefreshToken refreshToken) {
+        if (refreshToken == null) return true;
+        return refreshToken.getExpirationDate().isBefore(LocalDateTime.now());
+    }
+
+    private static Boolean isTokenRevoked(RefreshToken refreshToken) {
+        return Boolean.TRUE.equals(refreshToken.getRevoked());
+    }
+
+    private Mono<Void> revokeRefreshToken(String token) {
+        return refreshTokenRepository.findByToken(token)
+                .flatMap(refreshToken -> {
+                    refreshToken.setRevoked(true);
+                    return refreshTokenRepository.save(refreshToken)
+                            .then();
+                });
     }
 }
