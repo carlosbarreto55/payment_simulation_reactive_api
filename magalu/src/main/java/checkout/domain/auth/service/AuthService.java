@@ -195,4 +195,14 @@ public class AuthService {
                             .then();
                 });
     }
+
+    public Mono<Void> logout (RefreshTokenRequestDto request) {
+        return refreshTokenRepository.findByToken(request.getRefreshToken())
+                .filter (refreshToken -> refreshToken.getRevoked() == false)
+                .flatMap(refreshToken -> {
+                    refreshToken.setRevoked(true);
+                    return refreshTokenRepository.save(refreshToken)
+                            .then();
+                });
+    }
 }

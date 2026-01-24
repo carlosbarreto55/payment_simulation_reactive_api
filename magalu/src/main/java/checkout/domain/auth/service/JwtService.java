@@ -80,7 +80,7 @@ public class JwtService {
         return getClaims(token)
                 .flatMap(claims -> {
                     String tokenType = claims.get("type", String.class);
-                    if (tokenType == null || !"refresh".equals(tokenType)) {
+                    if (!"refresh".equals(tokenType)) {
                         return Mono.error(new InvalidTokenException("Invalid token type: expected refresh token"));
                     }
                     return Mono.just(claims);
