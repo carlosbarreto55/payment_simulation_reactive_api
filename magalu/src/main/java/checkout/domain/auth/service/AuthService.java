@@ -195,4 +195,15 @@ public class AuthService {
                             .then();
                 });
     }
+
+    public Mono<Void> logout (RefreshTokenRequestDto request) {
+        return refreshTokenRepository.findByToken(request.getRefreshToken())
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Token not found")))
+                .filter (refreshToken -> !isTokenRevoked(refreshToken) && !isTokenExpired(refreshToken))
+                .flatMap(refreshToken -> {
+                    refreshToken.setRevoked(true);
+                    return refreshTokenRepository.save(refreshToken)
+                            .then();
+                });
+    }
 }

@@ -2,6 +2,7 @@ package checkout.domain.auth.controller;
 
 import checkout.domain.auth.dto.LoginResponseDto;
 import checkout.domain.auth.dto.LoginRequestDto;
+import checkout.domain.auth.dto.RefreshTokenRequestDto;
 import checkout.domain.auth.dto.RegisterRequestDto;
 import checkout.domain.auth.dto.RegisterResponseDto;
 import checkout.domain.auth.service.AuthService;
@@ -35,6 +36,20 @@ public class AuthController {
     public Mono<ResponseEntity<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto request) {
         log.info("Login request for email: {}", request.getEmail());
         return authService.login(request)
+                .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<Void>> logout (@Valid @RequestBody RefreshTokenRequestDto request) {
+        log.info("Logout request for refresh token: {}", request.getRefreshToken());
+        return authService.logout(request)
+                .thenReturn(ResponseEntity.noContent().build());
+    }
+
+    @PostMapping("/refresh-token")
+    public Mono<ResponseEntity<LoginResponseDto>> refreshToken(@Valid @RequestBody RefreshTokenRequestDto request) {
+        log.info("Refresh token request for refresh token: {}", request.getRefreshToken());
+        return authService.refreshToken(request)
                 .map(ResponseEntity::ok);
     }
 }
