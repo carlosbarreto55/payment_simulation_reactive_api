@@ -40,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public Mono<ResponseEntity<Void>> logout (@Valid @RequestBody RefreshTokenRequestDto request) {
+    public Mono<ResponseEntity<Void>> logout(@Valid @RequestBody RefreshTokenRequestDto request) {
         log.info("Logout request for refresh token: {}", request.getRefreshToken());
         return authService.logout(request)
                 .thenReturn(ResponseEntity.noContent().build());

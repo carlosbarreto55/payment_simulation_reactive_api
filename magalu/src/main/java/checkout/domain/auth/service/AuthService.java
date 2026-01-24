@@ -124,7 +124,7 @@ public class AuthService {
                 });
     }
 
-    private LoginResponseDto buildLoginResponse(String accessToken, String refreshToken){
+    private LoginResponseDto buildLoginResponse(String accessToken, String refreshToken) {
         LoginResponseDto response = new LoginResponseDto();
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
@@ -196,10 +196,10 @@ public class AuthService {
                 });
     }
 
-    public Mono<Void> logout (RefreshTokenRequestDto request) {
+    public Mono<Void> logout(RefreshTokenRequestDto request) {
         return refreshTokenRepository.findByToken(request.getRefreshToken())
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Token not found")))
-                .filter (refreshToken -> !isTokenRevoked(refreshToken) && !isTokenExpired(refreshToken))
+                .filter(refreshToken -> !isTokenRevoked(refreshToken) && !isTokenExpired(refreshToken))
                 .flatMap(refreshToken -> {
                     refreshToken.setRevoked(true);
                     return refreshTokenRepository.save(refreshToken)
