@@ -1,79 +1,99 @@
-# 🛒 Plataforma de Checkout e Pagamentos Reativa
+# Reactive Checkout and Payment Platform
 
-Backend profissional de checkout e pagamentos desenvolvido com **Java** e **Spring Boot**, utilizando programação reativa com **Spring WebFlux** e **MySQL (R2DBC)**. Este projeto simula um sistema real de checkout, inspirado em arquiteturas usadas por grandes empresas brasileiras como bancos, fintechs, marketplaces e varejistas.
+Professional checkout and payment backend developed with **Java** and **Spring Boot**, using reactive programming with **Spring WebFlux** and **MySQL (R2DBC)**. This project simulates a real-world checkout system, inspired by architectures used by large companies such as banks, fintechs, marketplaces, and retailers.
 
-## 🎯 Objetivo
+## Objective
 
-Construir um backend reativo que represente um **sistema completo de checkout e pagamentos**, cobrindo:
+Build a reactive backend that represents a **complete checkout and payment system**, covering:
 
-- ✅ Criação e gestão de pedidos
-- ✅ Processamento de pagamentos (PIX, cartão, boleto – simulados)
-- ✅ Análise de risco/antifraude
-- ✅ Webhooks e eventos assíncronos
-- ✅ Autenticação e autorização robustas (JWT)
-- ✅ Pipeline de CI/CD com GitHub Actions
-- ✅ Idempotência em operações críticas
-- ✅ Auditoria e observabilidade
+- Order creation and management
+- Payment processing (PIX, credit card, debit card, boleto - simulated)
+- Risk analysis and fraud prevention
+- Webhooks and asynchronous events
+- Robust authentication and authorization (JWT)
+- CI/CD pipeline with GitHub Actions
+- Idempotency in critical operations
+- Audit and observability
 
-## 🏗️ Arquitetura
+## Architecture
 
-O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizado em empresas grandes:
+This project follows a **Service-Oriented Architecture (SOA)** pattern, organizing the application into independent, cohesive services that communicate through well-defined interfaces and asynchronous events.
 
 ```
-┌────────────┐
-│   Client   │
-└─────┬──────┘
-      ↓
-┌─────────────────────────────┐
-│   API Gateway (WebFlux)     │
-├─────────┬─────────┬─────────┤
-│  Auth   │ Orders  │ Payments│
-├─────────┼─────────┼─────────┤
-│  Risk   │ Notify  │ Webhooks│
-└─────────┴─────────┴─────────┘
-      ↓
-┌─────────────────────────────┐
-│   MySQL (R2DBC + Flyway)    │
-└─────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         API Layer                            │
+│                   (Spring WebFlux REST)                      │
+└───────┬──────────┬──────────┬──────────┬──────────┬─────────┘
+        │          │          │          │          │
+   ┌────▼───┐ ┌───▼────┐ ┌───▼─────┐ ┌──▼────┐ ┌──▼────────┐
+   │  Auth  │ │ Order  │ │ Payment │ │ Risk  │ │ Webhook   │
+   │Service │ │Service │ │ Service │ │Service│ │  Service  │
+   └────┬───┘ └───┬────┘ └───┬─────┘ └──┬────┘ └──┬────────┘
+        │         │          │          │         │
+        └─────────┴──────────┴──────────┴─────────┘
+                           │
+                  ┌────────▼────────┐
+                  │  Event Bus      │
+                  │ (Outbox Pattern)│
+                  └────────┬────────┘
+                           │
+                  ┌────────▼────────┐
+                  │ MySQL (R2DBC)   │
+                  └─────────────────┘
 ```
 
-### Características Arquiteturais
+### Service-Oriented Architecture Characteristics
 
-- **Programação Reativa**: Uso de Reactor para operações não-bloqueantes
-- **Outbox Pattern**: Garantia de entrega de eventos assíncronos
-- **Idempotência**: Prevenção de cobranças duplicadas
-- **RBAC**: Controle de acesso baseado em roles
-- **Separação por Domínio**: Organização clara por contexto de negócio
+**Independent Services:**
+Each domain service (Auth, Order, Payment, Risk, Webhook, Notification) is independently developed with its own:
+- Domain entities and business logic
+- Repository layer for data access
+- Service layer for orchestration
+- Controller layer exposing RESTful APIs
+- DTOs for input/output contracts
 
-## 📦 Tecnologias Utilizadas
+**Service Communication:**
+- **Synchronous:** RESTful APIs for direct service-to-service calls
+- **Asynchronous:** Event-driven communication via Outbox Pattern for eventual consistency
+- **Decoupled:** Services interact through well-defined contracts, enabling independent evolution
+
+**Key Architectural Patterns:**
+- **Reactive Programming:** Non-blocking operations using Project Reactor
+- **Outbox Pattern:** Guaranteed event delivery for asynchronous communication
+- **Idempotency:** Duplicate request prevention in critical operations
+- **RBAC:** Role-Based Access Control for authorization
+- **Domain Separation:** Clear boundaries between business contexts
+- **Layered Architecture:** Separation of concerns (API, Domain, Infrastructure)
+
+## Technology Stack
 
 ### Backend
 - **Java 17+**
 - **Spring Boot 3.5.3**
-- **Spring WebFlux** (Programação Reativa)
+- **Spring WebFlux** (Reactive Programming)
 - **Spring Security** (JWT Authentication)
-- **Spring Data R2DBC** (MySQL reativo)
-- **Flyway** (Migrações de banco de dados)
-- **Lombok** (Redução de boilerplate)
+- **Spring Data R2DBC** (Reactive MySQL)
+- **Flyway** (Database migrations)
+- **Lombok** (Boilerplate reduction)
 
-### Banco de Dados
+### Database
 - **MySQL 8.0+**
-- **R2DBC MySQL Driver** (Driver reativo)
+- **R2DBC MySQL Driver** (Reactive driver)
 
-### Segurança
+### Security
 - **JWT** (JSON Web Tokens) - Access + Refresh Token
 - **Spring Security WebFlux**
-- **HMAC** (Assinatura de webhooks)
+- **HMAC** (Webhook signatures)
 
-### Observabilidade
+### Observability
 - **Spring Boot Actuator**
 - **Micrometer** + **Prometheus**
-- **Logs estruturados**
+- **Structured logging**
 
-### Testes
+### Testing
 - **JUnit 5**
 - **Reactor Test**
-- **Testcontainers** (MySQL para testes)
+- **Testcontainers** (MySQL for integration tests)
 - **WebTestClient**
 
 ### DevOps
@@ -81,141 +101,141 @@ O projeto segue uma arquitetura de **monólito modular**, padrão muito utilizad
 - **GitHub Actions** (CI/CD)
 - **GitHub Container Registry** (GHCR)
 
-## 🧩 Domínios do Sistema
+## System Services
 
-### 🔐 Identity & Auth
-- Registro e login de usuários
-- JWT com access e refresh tokens
-- Perfis de acesso:
-  - `CUSTOMER` - Cliente final
-  - `MERCHANT_ADMIN` - Administrador de loja
-  - `SUPPORT` - Suporte técnico
-  - `SYSTEM` - Sistema interno
+### Identity & Auth Service
+- User registration and login
+- JWT with access and refresh tokens
+- Access profiles:
+  - `CUSTOMER` - End customer
+  - `MERCHANT_ADMIN` - Store administrator
+  - `SUPPORT` - Technical support
+  - `SYSTEM` - Internal system
 
-### 👤 Customers & Merchants
-- Gestão de clientes (KYC simplificado)
-- Gestão de lojistas e suas lojas
-- Relacionamento cliente → pedido → pagamento
+### Customer & Merchant Service
+- Customer management (simplified KYC)
+- Merchant and store management
+- Relationship: customer → order → payment
 
-### 🛒 Orders
-- Criação de pedidos
-- Estados do pedido:
-  - `CREATED` - Criado
-  - `RESERVED` - Estoque reservado
-  - `PAID` - Pago
-  - `CANCELED` - Cancelado
-  - `REFUNDED` - Estornado
-- Reserva de estoque (simulada)
-- Cancelamento seguro
+### Order Service
+- Order creation
+- Order states:
+  - `CREATED` - Created
+  - `RESERVED` - Stock reserved
+  - `PAID` - Paid
+  - `CANCELED` - Canceled
+  - `REFUNDED` - Refunded
+- Stock reservation (simulated)
+- Safe cancellation
 
-### 💳 Payments (Core)
-- Criação de **Payment Intent**
-- Métodos de pagamento:
+### Payment Service (Core)
+- **Payment Intent** creation
+- Payment methods:
   - **PIX**
-  - **Cartão de Crédito** (simulado)
-  - **Cartão de Débito** (simulado)
-  - **Boleto** (simulado)
-- **Idempotency-Key** obrigatória
-- Prevenção de cobrança duplicada
-- Suporte a estorno
+  - **Credit Card** (simulated)
+  - **Debit Card** (simulated)
+  - **Boleto** (simulated)
+- **Idempotency-Key** mandatory
+- Duplicate charge prevention
+- Refund support
 
-### 🛡️ Risk / Antifraude
-- Regras de risco simuladas
-- Decisões:
-  - `APPROVE` - Aprovado
-  - `REVIEW` - Em análise
-  - `DENY` - Negado
-- Aprovação manual via backoffice (perfil SUPPORT)
+### Risk Analysis Service
+- Simulated risk rules
+- Decisions:
+  - `APPROVE` - Approved
+  - `REVIEW` - Under review
+  - `DENY` - Denied
+- Manual approval via backoffice (SUPPORT profile)
 
-### 📣 Notifications
-- Eventos de negócio:
-  - Pedido pago
-  - Pagamento recusado
-  - Estorno realizado
-- Entrega via:
-  - E-mail (mock)
-  - Webhook do lojista
-- Implementação com **Outbox Pattern**
+### Notification Service
+- Business events:
+  - Order paid
+  - Payment declined
+  - Refund processed
+- Delivery via:
+  - Email (mock)
+  - Merchant webhook
+- Implementation with **Outbox Pattern**
 
-### 🔗 Webhooks
-- Configuração de webhooks por loja
-- Assinatura HMAC para segurança
-- Idempotência de webhooks
-- Retry automático com backoff exponencial
+### Webhook Service
+- Webhook configuration per store
+- HMAC signature for security
+- Webhook idempotency
+- Automatic retry with exponential backoff
 
-## 📐 Regras de Negócio Principais
+## Main Business Rules
 
-### Autenticação & Acesso
-- Um usuário só pode acessar pedidos que ele criou, exceto:
-  - `SUPPORT` → pode apenas **visualizar** qualquer pedido
-  - `MERCHANT_ADMIN` → pode visualizar pedidos da própria loja
-- Refresh token inválido invalida automaticamente todos os tokens ativos do usuário
-- Tentativas excessivas de login bloqueiam temporariamente o usuário
+### Authentication & Access
+- A user can only access orders they created, except:
+  - `SUPPORT` → can only **view** any order
+  - `MERCHANT_ADMIN` → can view orders from their own store
+- Invalid refresh token automatically invalidates all active user tokens
+- Excessive login attempts temporarily block the user
 
-### Pedidos
-- Um pedido só pode ser pago se estiver no estado `CREATED` ou `RESERVED`
-- Um pedido `PAID` **não pode** ser cancelado diretamente — apenas estornado
-- Se a reserva de estoque falhar, o pedido é automaticamente cancelado
-- Um pedido só pode ter **um pagamento ativo por vez**
+### Orders
+- An order can only be paid if in `CREATED` or `RESERVED` state
+- A `PAID` order **cannot** be canceled directly - only refunded
+- If stock reservation fails, the order is automatically canceled
+- An order can only have **one active payment at a time**
 
-### Pagamentos
-- Toda requisição de criação/confirmação de pagamento **exige Idempotency-Key**
-- Requisições idempotentes retornam sempre a **mesma resposta**, sem duplicar transações
-- Um pagamento aprovado:
-  - Atualiza o pedido para `PAID`
-  - Gera evento de notificação
-- Um pagamento negado:
-  - Mantém o pedido em `CREATED`
-  - Registra motivo técnico e de negócio
-- Estornos só são permitidos para pagamentos `APPROVED`
+### Payments
+- Every payment creation/confirmation request **requires Idempotency-Key**
+- Idempotent requests always return the **same response**, without duplicating transactions
+- An approved payment:
+  - Updates the order to `PAID`
+  - Generates notification event
+- A denied payment:
+  - Keeps the order in `CREATED`
+  - Records technical and business reason
+- Refunds are only allowed for `APPROVED` payments
 
-### Antifraude
-- Pagamentos acima de um valor limite entram automaticamente em `REVIEW`
-- Múltiplas tentativas de pagamento em curto período aumentam score de risco
-- Pagamentos `DENY`:
-  - Não podem ser reprocessados
-  - Exigem criação de novo pedido
-- Apenas usuários `SUPPORT` podem aprovar manualmente um `REVIEW`
+### Fraud Prevention
+- Payments above a threshold automatically enter `REVIEW`
+- Multiple payment attempts in a short period increase risk score
+- `DENY` payments:
+  - Cannot be reprocessed
+  - Require creation of a new order
+- Only `SUPPORT` users can manually approve a `REVIEW`
 
-### Webhooks & Eventos
-- Webhooks devem conter assinatura HMAC válida
-- Webhooks são **idempotentes** (reprocessamento seguro)
-- Falhas de entrega não perdem eventos (Outbox Pattern)
-- Eventos são entregues **pelo menos uma vez**
+### Webhooks & Events
+- Webhooks must contain valid HMAC signature
+- Webhooks are **idempotent** (safe reprocessing)
+- Delivery failures do not lose events (Outbox Pattern)
+- Events are delivered **at least once**
 
-## 🚀 Como Executar
+## How to Run
 
-### Pré-requisitos
-- Java 17 ou superior
+### Prerequisites
+- Java 17 or higher
 - Maven 3.6+
-- Docker e Docker Compose (opcional, mas recomendado)
-- MySQL 8.0+ (se não usar Docker)
+- Docker and Docker Compose (optional, but recommended)
+- MySQL 8.0+ (if not using Docker)
 
-### Opção 1: Com Docker Compose (Recomendado)
+### Option 1: With Docker Compose (Recommended)
 
-1. Clone o repositório:
+1. Clone the repository:
 ```bash
 git clone <repository-url>
 cd magalu
 ```
 
-2. Execute o Docker Compose:
+2. Run Docker Compose:
 ```bash
 docker-compose up -d
 ```
 
-Isso irá iniciar:
-- MySQL na porta 3306
-- Aplicação Spring Boot na porta 8080
+This will start:
+- MySQL on port 3306
+- Spring Boot application on port 8080
 
-3. Acesse a aplicação:
+3. Access the application:
 ```
 http://localhost:8080
 ```
 
-### Opção 2: Execução Local
+### Option 2: Local Execution
 
-1. Configure o MySQL:
+1. Configure MySQL:
 ```sql
 CREATE DATABASE magalu_db;
 CREATE USER 'root'@'localhost' IDENTIFIED BY 'root';
@@ -223,112 +243,110 @@ GRANT ALL PRIVILEGES ON magalu_db.* TO 'root'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-2. Configure o `application.properties` com suas credenciais:
+2. Configure `application.properties` with your credentials:
 ```properties
 spring.r2dbc.url=r2dbc:mysql://localhost:3306/magalu_db
 spring.r2dbc.username=root
-spring.r2dbc.password=sua_senha
+spring.r2dbc.password=your_password
 ```
 
-3. Execute a aplicação:
+3. Run the application:
 ```bash
 ./mvnw spring-boot:run
 ```
 
-### Verificar Saúde da Aplicação
+### Check Application Health
 
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
-## 📁 Estrutura do Projeto
+## Project Structure
 
 ```
 magalu/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/magalu/checkout/
-│   │   │       ├── config/              # Configurações (Security, R2DBC)
+│   │   │   └── checkout/
+│   │   │       ├── config/              # Configurations (Security, R2DBC)
 │   │   │       ├── domain/
-│   │   │       │   ├── auth/           # Identity & Auth
-│   │   │       │   ├── customer/       # Customers & Merchants
-│   │   │       │   ├── order/          # Orders
-│   │   │       │   ├── payment/        # Payments (Core)
-│   │   │       │   ├── risk/           # Risk / Antifraude
-│   │   │       │   ├── notification/   # Notifications
-│   │   │       │   └── webhook/        # Webhooks
-│   │   │       ├── shared/
-│   │   │       │   ├── exception/      # Exceções customizadas
-│   │   │       │   ├── security/       # Utilitários de segurança
+│   │   │       │   ├── auth/           # Identity & Auth Service
+│   │   │       │   ├── customer/       # Customer & Merchant Service
+│   │   │       │   ├── order/          # Order Service
+│   │   │       │   ├── payment/        # Payment Service (Core)
+│   │   │       │   ├── risk/           # Risk Analysis Service
+│   │   │       │   ├── notification/   # Notification Service
+│   │   │       │   └── webhook/        # Webhook Service
+│   │   │       ├── common/
+│   │   │       │   ├── exception/      # Custom exceptions
+│   │   │       │   ├── security/       # Security utilities
 │   │   │       │   ├── idempotency/    # Idempotency Key
-│   │   │       │   └── audit/          # Auditoria
-│   │   │       └── checkout/
-│   │   │           ├── database/       # Configurações DB
-│   │   │           └── messaging/      # Eventos assíncronos
+│   │   │       │   └── audit/          # Audit
+│   │   │       └── messaging/          # Asynchronous events
 │   │   └── resources/
 │   │       ├── application.properties
-│   │       └── db/migration/           # Migrações Flyway
+│   │       └── db/migration/           # Flyway migrations
 │   └── test/
-│       └── java/                       # Testes
+│       └── java/                       # Tests
 ├── pom.xml
 ├── docker-compose.yml
 ├── Dockerfile
 └── README.md
 ```
 
-## 🔌 Endpoints Principais
+## Main Endpoints
 
-### Autenticação
-- `POST /api/auth/register` - Registrar novo usuário
-- `POST /api/auth/login` - Fazer login
-- `POST /api/auth/refresh` - Renovar access token
-- `POST /api/auth/logout` - Fazer logout
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Renew access token
+- `POST /api/auth/logout` - Logout
 
-### Pedidos
-- `POST /api/orders` - Criar pedido
-- `GET /api/orders/{id}` - Buscar pedido
-- `POST /api/orders/{id}/cancel` - Cancelar pedido
+### Orders
+- `POST /api/orders` - Create order
+- `GET /api/orders/{id}` - Get order
+- `POST /api/orders/{id}/cancel` - Cancel order
 
-### Pagamentos
-- `POST /api/payments/intents` - Criar payment intent
-- `POST /api/payments/{id}/confirm` - Confirmar pagamento
-- `POST /api/payments/{id}/refund` - Estornar pagamento
+### Payments
+- `POST /api/payments/intents` - Create payment intent
+- `POST /api/payments/{id}/confirm` - Confirm payment
+- `POST /api/payments/{id}/refund` - Refund payment
 
-### Antifraude
-- `POST /api/risk/analyze` - Analisar risco
-- `POST /api/risk/{id}/approve` - Aprovar manualmente (SUPPORT)
+### Fraud Prevention
+- `POST /api/risk/analyze` - Analyze risk
+- `POST /api/risk/{id}/approve` - Manually approve (SUPPORT)
 
 ### Webhooks
-- `POST /api/webhooks/config` - Configurar webhook
-- `GET /api/webhooks/deliveries` - Listar entregas
+- `POST /api/webhooks/config` - Configure webhook
+- `GET /api/webhooks/deliveries` - List deliveries
 
-## 🧪 Testes
+## Testing
 
-### Executar Testes
+### Run Tests
 ```bash
 ./mvnw test
 ```
 
-### Executar Testes com Cobertura
+### Run Tests with Coverage
 ```bash
 ./mvnw test jacoco:report
 ```
 
-### Testes de Integração
-Os testes de integração utilizam **Testcontainers** para criar um ambiente MySQL isolado.
+### Integration Tests
+Integration tests use **Testcontainers** to create an isolated MySQL environment.
 
-## 🔄 CI/CD
+## CI/CD
 
-O projeto possui pipeline de CI/CD configurado com **GitHub Actions**:
+The project has a CI/CD pipeline configured with **GitHub Actions**:
 
-1. **Pull Request**: Executa build e testes
-2. **Build**: Gera imagem Docker e faz push para GHCR
-3. **Deploy**: Deploy automático para staging, manual para produção
+1. **Pull Request**: Executes build and tests
+2. **Build**: Generates Docker image and pushes to GHCR
+3. **Deploy**: Automatic deploy to staging, manual to production
 
-## 📊 Observabilidade
+## Observability
 
-### Métricas Prometheus
+### Prometheus Metrics
 ```
 http://localhost:8080/actuator/prometheus
 ```
@@ -338,52 +356,54 @@ http://localhost:8080/actuator/prometheus
 http://localhost:8080/actuator/health
 ```
 
-### Métricas
+### Metrics
 ```
 http://localhost:8080/actuator/metrics
 ```
 
-## 🔐 Segurança
+## Security
 
-- **JWT** com refresh token
+- **JWT** with refresh token
 - **Spring Security WebFlux**
-- **Rate limiting** em endpoints sensíveis
-- **Mascaramento de dados sensíveis** em logs
-- **Assinatura HMAC** em webhooks
-- **Validação de entrada** em todos os endpoints
+- **Rate limiting** on sensitive endpoints
+- **Sensitive data masking** in logs
+- **HMAC signature** on webhooks
+- **Input validation** on all endpoints
 
-## 📝 Padrões Aplicados
+## Applied Patterns
 
-- ✅ **Programação Reativa** (Reactor)
-- ✅ **Outbox Pattern** (Eventos assíncronos)
-- ✅ **Idempotência** (Operações críticas)
-- ✅ **Transactional Operator** (R2DBC)
-- ✅ **RBAC** (Role-Based Access Control)
-- ✅ **Separação de camadas** (API, domínio, infra)
-- ✅ **Domain-Driven Design** (DDD)
+- **Reactive Programming** (Reactor)
+- **Outbox Pattern** (Asynchronous events)
+- **Idempotency** (Critical operations)
+- **Transactional Operator** (R2DBC)
+- **RBAC** (Role-Based Access Control)
+- **Layer Separation** (API, domain, infrastructure)
+- **Domain-Driven Design** (DDD)
+- **Service-Oriented Architecture** (SOA)
 
-## 🤝 Contribuindo
+## Contributing
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 Licença
+## License
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+This project is under the MIT license. See the `LICENSE` file for more details.
 
-## 👨‍💻 Autor
+## Author
 
-Desenvolvido como projeto de portfólio profissional, demonstrando conhecimento em:
-- Arquitetura de sistemas reativos
-- Spring WebFlux e programação reativa
-- Padrões de design e arquitetura
-- Boas práticas de desenvolvimento
-- CI/CD e DevOps
+Developed as a professional portfolio project, demonstrating knowledge in:
+- Reactive systems architecture
+- Spring WebFlux and reactive programming
+- Design and architecture patterns
+- Development best practices
+- CI/CD and DevOps
+- Service-Oriented Architecture
 
-## 🔗 Links Úteis
+## Useful Links
 
 - [Spring WebFlux Documentation](https://docs.spring.io/spring-framework/reference/web/webflux.html)
 - [R2DBC Documentation](https://r2dbc.io/)
@@ -392,4 +412,4 @@ Desenvolvido como projeto de portfólio profissional, demonstrando conhecimento 
 
 ---
 
-⭐ Se este projeto foi útil para você, considere dar uma estrela!
+If this project was useful to you, consider giving it a star!

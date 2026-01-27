@@ -77,7 +77,7 @@ public class JwtService {
     }
 
     public Mono<Claims> validateRefreshToken(String token) {
-        return getClaims(token)
+        return validateAccessToken(token)
                 .flatMap(claims -> {
                     String tokenType = claims.get("type", String.class);
                     if (!"refresh".equals(tokenType)) {
@@ -87,28 +87,26 @@ public class JwtService {
                 });
     }
 
-    public Mono<Claims> validateAccessToken(String token) {
-        return getClaims(token);
-    }
-
     @NotNull
-    private Mono<Claims> getClaims(String token) {
+    public Mono<Claims> validateAccessToken(String token) {
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSignedKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
+            Claims claims = getClaims(token);
             if (claims.getExpiration().before(new Date())) {
                 return Mono.error(new InvalidTokenException("Token expired"));
             }
-
             return Mono.just(claims);
         } catch (Exception e) {
             log.error("Error validating token", e);
             return Mono.error(new InvalidTokenException("Invalid token: " + e.getMessage()));
         }
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignedKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public Mono<String> getUserNameFromToken(String token) {
