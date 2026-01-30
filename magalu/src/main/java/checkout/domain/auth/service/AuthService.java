@@ -164,16 +164,14 @@ public class AuthService {
                                 }
                                 return userRepository.findById(userId)
                                         .switchIfEmpty(Mono.error(new ResourceNotFoundException("User not found")))
-                                        .flatMap(user -> {
-                                            return generateTokens(user)
-                                                    .flatMap(tokens -> {
-                                                        String newAccessToken = tokens.getT1();
-                                                        String newRefreshToken = tokens.getT2();
-                                                        return saveRefreshToken(newRefreshToken, user)
-                                                                .then(revokeRefreshToken(request.getRefreshToken()))
-                                                                .thenReturn(buildLoginResponse(newAccessToken, newRefreshToken));
-                                                    });
-                                        });
+                                        .flatMap(user -> generateTokens(user)
+                                                .flatMap(tokens -> {
+                                                    String newAccessToken = tokens.getT1();
+                                                    String newRefreshToken = tokens.getT2();
+                                                    return saveRefreshToken(newRefreshToken, user)
+                                                            .then(revokeRefreshToken(request.getRefreshToken()))
+                                                            .thenReturn(buildLoginResponse(newAccessToken, newRefreshToken));
+                                                }));
                             });
                 });
     }
