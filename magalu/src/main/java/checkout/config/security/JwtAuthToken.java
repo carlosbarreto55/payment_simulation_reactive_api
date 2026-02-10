@@ -1,5 +1,6 @@
 package checkout.config.security;
 
+import lombok.Data;
 import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,10 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+@Data
 public class JwtAuthToken extends AbstractAuthenticationToken {
-
-
     @Getter
     private final Long userId;
 
@@ -20,6 +19,9 @@ public class JwtAuthToken extends AbstractAuthenticationToken {
     private final String email;
 
     private final String token;
+
+    @Getter
+    private List<String> roles;
 
     public JwtAuthToken(Long userId, String email,
                         List<String> roles, String token) {

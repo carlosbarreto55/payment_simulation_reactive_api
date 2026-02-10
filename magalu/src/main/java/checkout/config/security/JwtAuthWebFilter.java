@@ -20,13 +20,17 @@ import java.util.List;
 public class JwtAuthWebFilter implements WebFilter {
 
     private final JwtService jwtService;
-    private static final String BEARER_PREFIX = "Bearer ";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
         String token = HeaderProcessor.extractToken(exchange);
+
+        if (isPublicPath(path)) {
+            log.debug("Skipping authentication for public path: {}", path);
+            return chain.filter(exchange);
+        }
 
         if (token != null) {
             return jwtService.validateAccessToken(token)
@@ -36,7 +40,7 @@ public class JwtAuthWebFilter implements WebFilter {
                                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
                     })
                     .onErrorResume(e -> {
-                        log.warn("An error ocuured validating token");
+                        log.warn("An error occurred validating token");
                         return chain.filter(exchange);
                     });
         } else {
@@ -54,10 +58,9 @@ public class JwtAuthWebFilter implements WebFilter {
     }
 
     private Boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/registe") ||
-                path.startsWith("/api/auth/login") ||
-                path.startsWith("/actuator/");
+        return path.equals("/api/auth/register") ||
+                path.equals("/api/auth/login") ||
+                path.equals("/api/auth/refresh-token") ||
+                path.equals("/actuator/health");
     }
-
-
 }
