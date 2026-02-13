@@ -1,4 +1,4 @@
-package checkout.domain.auth.dto;
+package checkout.domain.user.dto;
 
 import lombok.Data;
 
@@ -6,6 +6,7 @@ import lombok.Data;
 public class RegisterResponseDto {
 
     private Long id;
+
     private String email;
 
 }

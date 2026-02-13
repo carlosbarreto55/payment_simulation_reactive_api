@@ -1,4 +1,4 @@
-package checkout.domain.auth.entity;
+package checkout.domain.user.entity;
 
 
 import lombok.AllArgsConstructor;

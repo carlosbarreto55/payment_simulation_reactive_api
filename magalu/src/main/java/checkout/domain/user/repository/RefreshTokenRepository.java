@@ -1,6 +1,6 @@
-package checkout.domain.auth.repository;
+package checkout.domain.user.repository;
 
-import checkout.domain.auth.entity.RefreshToken;
+import checkout.domain.user.entity.RefreshToken;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;

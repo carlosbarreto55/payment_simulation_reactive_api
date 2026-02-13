@@ -1,6 +1,6 @@
 package checkout.domain.customer.controller;
 
-import checkout.domain.customer.Service.CustomerService;
+import checkout.domain.customer.service.CustomerService;
 import checkout.domain.customer.dto.CustomeUpdateRequestDto;
 import checkout.domain.customer.dto.CustomerRequestDto;
 import checkout.domain.customer.dto.CustomerResponseDto;

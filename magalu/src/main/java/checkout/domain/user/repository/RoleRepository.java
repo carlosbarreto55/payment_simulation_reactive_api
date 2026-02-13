@@ -1,6 +1,6 @@
-package checkout.domain.auth.repository;
+package checkout.domain.user.repository;
 
-import checkout.domain.auth.entity.Role;
+import checkout.domain.user.entity.Role;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 

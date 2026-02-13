@@ -1,7 +1,7 @@
 package checkout.config.security;
 
 import checkout.common.HeaderProcessor;
-import checkout.domain.auth.service.JwtService;
+import checkout.domain.user.service.JwtService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

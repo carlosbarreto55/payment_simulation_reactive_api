@@ -1,4 +1,4 @@
-package checkout.domain.auth.dto;
+package checkout.domain.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

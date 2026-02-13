@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/auth/**").permitAll()
+                        .pathMatchers("/api/user**").permitAll()
                         .pathMatchers("/actuator/health").permitAll()
                         .pathMatchers("/actuator/prometheus").permitAll()
                         .anyExchange().authenticated()

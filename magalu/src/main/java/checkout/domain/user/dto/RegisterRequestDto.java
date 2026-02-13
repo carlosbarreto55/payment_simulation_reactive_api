@@ -1,4 +1,4 @@
-package checkout.domain.auth.dto;
+package checkout.domain.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class LoginRequestDto {
+public class RegisterRequestDto {
 
     @NotBlank
     @Email
@@ -15,4 +15,5 @@ public class LoginRequestDto {
     @Size(min = 5, max = 255)
     @NotBlank
     private String password;
+
 }

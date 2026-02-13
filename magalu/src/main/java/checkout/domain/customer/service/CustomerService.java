@@ -1,4 +1,4 @@
-package checkout.domain.customer.Service;
+package checkout.domain.customer.service;
 
 import checkout.common.exception.ResourceNotFoundException;
 import checkout.common.exception.UnauthorizedException;

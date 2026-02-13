@@ -1,9 +1,9 @@
-package checkout.domain.auth.service;
+package checkout.domain.user.service;
 
 import checkout.common.exception.InvalidTokenException;
-import checkout.domain.auth.entity.Role;
-import checkout.domain.auth.entity.User;
-import checkout.domain.auth.repository.RoleRepository;
+import checkout.domain.user.entity.Role;
+import checkout.domain.user.entity.User;
+import checkout.domain.user.repository.RoleRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
