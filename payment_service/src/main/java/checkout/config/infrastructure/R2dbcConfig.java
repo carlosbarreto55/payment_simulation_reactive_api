@@ -1,4 +1,4 @@
-package checkout.config;
+package checkout.config.infrastructure;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
