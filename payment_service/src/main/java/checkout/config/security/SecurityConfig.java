@@ -1,7 +1,6 @@
-package checkout.config;
+package checkout.config.security;
 
 
-import checkout.config.security.JwtAuthWebFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
