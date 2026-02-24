@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtAuthWebFilter implements WebFilter {
+class JwtAuthWebFilter implements WebFilter {
 
     private final JwtService jwtService;
 

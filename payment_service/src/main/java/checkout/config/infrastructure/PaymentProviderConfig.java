@@ -17,7 +17,7 @@ public class PaymentProviderConfig {
     @Value("${ABACATEPAY_API_URL}")
     private String payment_provider_url;
 
-    @Value("${ABACATEPAY_API_KEY}")
+    @Value("${PSP_API_KEY}")
     private String apiKey;
 
     @Value("${ABACATEPAY_TIMEOUT_MS}")

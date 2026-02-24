@@ -26,10 +26,10 @@ public class JwtService {
 
     private final RoleRepository roleRepository;
 
-    @Value("${app.jwt.secret}")
+    @Value("${JWT_SECRET}")
     private String secret;
 
-    @Value("${app.jwt.access-token-expiration}")
+    @Value("${JWT_ACCESS_TOKEN_EXPIRATION}")
     private Long accessTokenExpirationTime;
 
     private final Long refreshTokenExpirationTime = 86400L;
