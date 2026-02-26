@@ -37,8 +37,8 @@ public class PaymentMapper {
                 .collect(Collectors.toList());
 
         return CreateBillingRequestExtDto.builder()
-                .frequency("ONE_TIME")
-                .methods(request.getMethods())
+                .frequency(request.getFrequency().name())
+                .methods(request.getMethodsAsStrings())
                 .products(products)
                 .returnUrl(request.getReturnUrl())
                 .completionUrl(request.getCompletionUrl())
@@ -55,7 +55,8 @@ public class PaymentMapper {
      */
     public CreateBillingResponseDto toPaymentResponseDto(PaymentIntent intent,
                                                          CreateBillingResponseExtDto extResponse) {
-        CreateBillingResponseExtDto.BillingDataDto data = extResponse.getData();
+        CreateBillingResponseExtDto.BillingDataDto data =
+                extResponse != null ? extResponse.getData() : null;
 
         return CreateBillingResponseDto.builder()
                 .paymentIntentId(intent.getId())

@@ -28,8 +28,6 @@ public class PaymentIntent {
     @Id
     private Long id;
 
-    @Column("order_id")
-    private Long orderId;
 
     @Column("amount")
     private BigDecimal amount;

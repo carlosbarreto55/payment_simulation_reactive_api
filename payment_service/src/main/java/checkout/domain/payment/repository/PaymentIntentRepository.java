@@ -10,7 +10,6 @@ public interface PaymentIntentRepository extends ReactiveCrudRepository<PaymentI
 
     Mono<PaymentIntent> findByIdempotencyKey (String idempotencyKey);
 
-    Mono<PaymentIntent> findByOrderId (Long orderId);
 
     Mono<Boolean> existsByIdempotencyKey(String idempotencyKey);
 

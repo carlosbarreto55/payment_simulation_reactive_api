@@ -1,5 +1,7 @@
 package checkout.domain.payment.dto;
 
+import checkout.domain.payment.enums.Frequency;
+import checkout.domain.payment.enums.PaymentMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +32,15 @@ public class CreateBillingRequestDto {
      */
     @NotEmpty(message = "At least one payment method is required")
     @Size(max = 2, message = "Maximum of 2 payment methods allowed")
-    private List<String> methods;
+    private List<PaymentMethod> methods;
+
+    /**
+     * Billing frequency type.
+     * Available options: ONE_TIME, MULTIPLE_PAYMENTS.
+     */
+    @NotNull(message = "Frequency is required")
+    @Builder.Default
+    private Frequency frequency = Frequency.ONE_TIME;
 
     /**
      * Products the customer is paying for.
@@ -50,6 +60,14 @@ public class CreateBillingRequestDto {
      */
     @NotBlank(message = "Completion URL is required")
     private String completionUrl;
+
+    /**
+     * Returns payment method names as strings for external provider communication.
+     */
+    public List<String> getMethodsAsStrings() {
+        if (methods == null) return List.of();
+        return methods.stream().map(Enum::name).toList();
+    }
 
     @Data
     @Builder
