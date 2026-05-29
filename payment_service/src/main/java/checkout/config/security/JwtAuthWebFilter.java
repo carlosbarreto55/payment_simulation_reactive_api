@@ -58,9 +58,9 @@ class JwtAuthWebFilter implements WebFilter {
     }
 
     private Boolean isPublicPath(String path) {
-        return path.equals("/api/auth/register") ||
-                path.equals("/api/auth/login") ||
-                path.equals("/api/auth/refresh-token") ||
+        return path.equals("/api/v1/auth/register") ||
+                path.equals("/api/v1/auth/login") ||
+                path.equals("/api/v1/auth/refresh-token") ||
                 path.equals("/actuator/health");
     }
 }
