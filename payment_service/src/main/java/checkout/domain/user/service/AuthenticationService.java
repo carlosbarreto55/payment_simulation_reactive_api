@@ -12,7 +12,8 @@ import checkout.domain.user.repository.RefreshTokenRepository;
 import checkout.domain.user.repository.RoleRepository;
 import checkout.domain.user.repository.UserRepository;
 import checkout.domain.user.repository.UserRoleRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,17 +26,17 @@ import static checkout.common.ApiConstants.DEFAULT_ROLE_NAME;
 import static checkout.domain.user.mapper.UserMapper.buildLoginResponse;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthenticationService {
     private final RoleRepository roleRepository;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder encoder;
 
-    private final PasswordEncoder encoder ;
-
-    private final LocalDateTime refreshTokenExpirationDate = LocalDateTime.now().plusDays(1);
+    @Value("${app.jwt.refresh-token-expiration}")
+    private Long refreshTokenExpirationTime;
 
 
     public Mono<Tuple2<String, String>> generateTokens(User user) {
@@ -46,10 +47,11 @@ public class AuthenticationService {
     }
 
     public Mono<Void> saveRefreshToken(String refreshToken, User user) {
+        LocalDateTime expirationDate = LocalDateTime.now().plusSeconds(refreshTokenExpirationTime);
         RefreshToken token = RefreshToken.builder()
                 .userId(user.getId())
                 .token(refreshToken)
-                .expirationDate(refreshTokenExpirationDate)
+                .expirationDate(expirationDate)
                 .revoked(false)
                 .build();
         return refreshTokenRepository.save(token).then();

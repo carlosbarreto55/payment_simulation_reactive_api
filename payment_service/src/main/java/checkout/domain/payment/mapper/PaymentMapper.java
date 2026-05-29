@@ -58,12 +58,16 @@ public class PaymentMapper {
         CreateBillingResponseExtDto.BillingDataDto data =
                 extResponse != null ? extResponse.getData() : null;
 
+        Integer amountInCents = intent.getAmount() != null
+                ? intent.getAmount().multiply(java.math.BigDecimal.valueOf(100)).intValue()
+                : null;
+
         return CreateBillingResponseDto.builder()
                 .paymentIntentId(intent.getId())
                 .status(intent.getStatus())
                 .paymentUrl(data != null ? data.getUrl() : null)
                 .paymentMethods(data != null ? data.getMethods() : null)
-                .amountInCents(data != null ? data.getAmount() : null)
+                .amountInCents(amountInCents)
                 .build();
     }
 }

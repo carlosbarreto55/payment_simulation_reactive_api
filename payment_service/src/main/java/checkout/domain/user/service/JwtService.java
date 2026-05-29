@@ -32,7 +32,8 @@ public class JwtService {
     @Value("${JWT_ACCESS_TOKEN_EXPIRATION}")
     private Long accessTokenExpirationTime;
 
-    private final Long refreshTokenExpirationTime = 86400L;
+    @Value("${app.jwt.refresh-token-expiration}")
+    private Long refreshTokenExpirationTime;
 
     private SecretKey getSignedKey() {
         byte[] keyBytes = secret.getBytes();
