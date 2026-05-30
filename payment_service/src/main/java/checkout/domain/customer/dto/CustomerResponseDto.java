@@ -1,6 +1,6 @@
 package checkout.domain.customer.dto;
 
-import checkout.domain.customer.entity.Document;
+import checkout.common.enums.DocumentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +19,9 @@ public class CustomerResponseDto {
 
     private String email;
 
-    private Document document;
+    private String document;
+
+    private DocumentType documentType;
 
     private String phoneNumber;
 

@@ -278,6 +278,9 @@ magalu/
 │   │   │       │   ├── risk/           # Risk Analysis Service
 │   │   │       │   ├── notification/   # Notification Service
 │   │   │       │   └── webhook/        # Webhook Service
+│   │   │       ├── boundedcontext/     # New DDD value objects & enums
+│   │   │       │   ├── customer/domain/# Customer VOs (Document, etc.)
+│   │   │       │   └── payment/domain/ # Payment VOs (PaymentMethod, IdempotencyKey, etc.)
 │   │   │       ├── common/
 │   │   │       │   ├── exception/      # Custom exceptions
 │   │   │       │   ├── security/       # Security utilities
@@ -294,6 +297,8 @@ magalu/
 ├── Dockerfile
 └── README.md
 ```
+
+> **DDD Package Layout Note:** The project uses a transitional package layout. Legacy controllers, services, repositories, entities, and DTOs live under `checkout.domain.*`, while new DDD value objects and domain enums are placed under `checkout.boundedcontext.*` during the incremental migration.
 
 ## Main Endpoints
 

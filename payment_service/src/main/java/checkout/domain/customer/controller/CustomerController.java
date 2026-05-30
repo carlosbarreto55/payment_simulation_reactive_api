@@ -1,7 +1,7 @@
 package checkout.domain.customer.controller;
 
 import checkout.domain.customer.service.CustomerService;
-import checkout.domain.customer.dto.CustomeUpdateRequestDto;
+import checkout.domain.customer.dto.CustomerUpdateRequestDto;
 import checkout.domain.customer.dto.CustomerRequestDto;
 import checkout.domain.customer.dto.CustomerResponseDto;
 import jakarta.validation.Valid;
@@ -55,7 +55,7 @@ public class CustomerController {
     @PatchMapping("/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MERCHANT_ADMIN', 'SUPPORT')")
     public Mono<ResponseEntity<CustomerResponseDto>> updateCustomer(
-            @RequestBody @Valid CustomeUpdateRequestDto body,
+            @RequestBody @Valid CustomerUpdateRequestDto body,
             @PathVariable Long id) {
         log.info("PATCH /api/v1/customers - Updating customer with Id {}",id);
         return service.updateCustomer(id, body)

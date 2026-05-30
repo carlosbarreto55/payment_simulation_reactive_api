@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import checkout.common.enums.DocumentType;
 import java.time.LocalDateTime;
 
 @Table("customers")
@@ -31,7 +32,10 @@ public class Customer {
     private String email;
 
     @Column("document")
-    private Document document;
+    private String documentNumber;
+
+    @Column("document_type")
+    private DocumentType documentType;
 
     @Column("phone_number")
     private String phoneNumber;

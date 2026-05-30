@@ -4,11 +4,12 @@ import checkout.common.exception.DuplicateDocumentException;
 import checkout.common.exception.ResourceNotFoundException;
 import checkout.common.exception.UnauthorizedException;
 import checkout.config.security.JwtAuthToken;
-import checkout.domain.customer.dto.CustomeUpdateRequestDto;
+import checkout.domain.customer.dto.CustomerUpdateRequestDto;
 import checkout.domain.customer.dto.CustomerRequestDto;
 import checkout.domain.customer.dto.CustomerResponseDto;
 import checkout.domain.customer.entity.Customer;
-import checkout.domain.customer.entity.Document;
+import checkout.boundedcontext.customer.domain.Document;
+import checkout.common.enums.DocumentType;
 import checkout.domain.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,26 +29,23 @@ public class CustomerService {
 
     @Transactional
     public Mono<CustomerResponseDto> create(CustomerRequestDto request) {
-        log.debug("Creating customer with document number: {}", request.getDocumentNumber());
+        log.debug("Creating customer with document type: {}", request.getDocumentType());
+        Document document = extractDocumentFromRequest(request);
+        String normalizedDocumentNumber = document.documentNumber().replaceAll("\\D", "");
 
         return ReactiveSecurityContextHolder.getContext()
-                .flatMap(context -> {
-                    JwtAuthToken auth = (JwtAuthToken) context.getAuthentication();
-                    Long userId = auth.getUserId();
-
-                    return customerRepository.existsByDocumentNumber(request.getDocumentNumber())
-                            .flatMap(exists -> {
-                                if (Boolean.TRUE.equals(exists)) {
-                                    log.error("Document number already exists: {}", request.getDocumentNumber());
-                                    return Mono.error(new DuplicateDocumentException(request.getDocumentNumber()));
-                                }
-                                Customer customer = buildCustomerFromRequest(request);
-                                customer.setUserId(userId);
-
-                                return customerRepository.save(customer)
-                                        .map(this::buildResponseDto);
-                            });
-                });
+                .map(context -> (JwtAuthToken) context.getAuthentication())
+                .flatMap(auth -> customerRepository.existsByDocumentNumberAndDocumentType(normalizedDocumentNumber, document.documentType())
+                        .flatMap(exists -> {
+                            if (Boolean.TRUE.equals(exists)) {
+                                log.error("Document number already exists for type: {}", document.documentType());
+                                return Mono.error(new DuplicateDocumentException());
+                            }
+                            Customer customer = buildCustomerFromRequest(normalizedDocumentNumber, document.documentType(), request);
+                            customer.setUserId(auth.getUserId());
+                            return customerRepository.save(customer)
+                                    .map(this::buildResponseDto);
+                        }));
     }
 
     public Mono<CustomerResponseDto> getCustomerById(Long id) {
@@ -72,7 +70,7 @@ public class CustomerService {
     }
 
     @Transactional
-    public Mono<CustomerResponseDto> updateCustomer(Long id, CustomeUpdateRequestDto request) {
+    public Mono<CustomerResponseDto> updateCustomer(Long id, CustomerUpdateRequestDto request) {
         log.info("Updating customer with id: {}", id);
 
         return ReactiveSecurityContextHolder.getContext()
@@ -121,32 +119,33 @@ public class CustomerService {
         return roles.contains("SUPPORT") || authUserId.equals(customerUserId);
     }
 
-    private void updateCustomerFields(Customer customer, CustomeUpdateRequestDto request) {
+    private void updateCustomerFields(Customer customer, CustomerUpdateRequestDto request) {
         customer.setName(request.getName());
         customer.setEmail(request.getEmail());
         customer.setPhoneNumber(request.getPhoneNumber());
     }
 
-    private Customer buildCustomerFromRequest(CustomerRequestDto request) {
+    private Customer buildCustomerFromRequest(String documentNumber, DocumentType documentType, CustomerRequestDto request) {
         return Customer.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .document(extractDocumentFromRequest(request))
+                .documentNumber(documentNumber)
+                .documentType(documentType)
                 .build();
     }
 
     private Document extractDocumentFromRequest(CustomerRequestDto request) {
-        return Document.builder()
-                .documentType(request.getDocumentType())
-                .documentNumber(request.getDocumentNumber())
-                .build();
+        return Document.from(request.getDocumentType(), request.getDocumentNumber());
     }
 
     private CustomerResponseDto buildResponseDto(Customer customer) {
+        Document document = new Document(customer.getDocumentType(), customer.getDocumentNumber());
         return CustomerResponseDto.builder()
                 .id(customer.getId())
                 .name(customer.getName())
                 .email(customer.getEmail())
+                .document(document.toString())
+                .documentType(customer.getDocumentType())
                 .phoneNumber(customer.getPhoneNumber())
                 .build();
     }
