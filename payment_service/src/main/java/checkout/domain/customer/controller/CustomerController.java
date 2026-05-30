@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
@@ -30,7 +30,7 @@ public class CustomerController {
 
     @PostMapping
     public Mono<ResponseEntity<CustomerResponseDto>> create(@RequestBody @Valid CustomerRequestDto body) {
-        log.info("POST /api/customers - Creating customer");
+        log.info("POST /api/v1/customers - Creating customer");
         return service.create(body)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
@@ -38,7 +38,7 @@ public class CustomerController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'SUPPORT')")
     public Mono<ResponseEntity<Void>> delete(@PathVariable Long id) {
-        log.info("DELETE /api/customers - Deleting customer");
+        log.info("DELETE /api/v1/customers - Deleting customer");
         return service.deleteCustomer(id)
                 .then(Mono.fromCallable(() -> ResponseEntity.status(HttpStatus.NO_CONTENT).build()));
 
@@ -47,7 +47,7 @@ public class CustomerController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MERCHANT_ADMIN', 'SUPPORT')")
     public Mono<ResponseEntity<CustomerResponseDto>> getCustomer(@PathVariable Long id) {
-        log.info("GET /api/customers - Geting customer for Id {}",id);
+        log.info("GET /api/v1/customers - Getting customer for Id {}",id);
         return service.getCustomerById(id)
                 .map(ResponseEntity::ok);
     }
@@ -57,7 +57,7 @@ public class CustomerController {
     public Mono<ResponseEntity<CustomerResponseDto>> updateCustomer(
             @RequestBody @Valid CustomeUpdateRequestDto body,
             @PathVariable Long id) {
-        log.info("PATCH /api/customers - Updating customer with Id {}",id);
+        log.info("PATCH /api/v1/customers - Updating customer with Id {}",id);
         return service.updateCustomer(id, body)
                 .map(ResponseEntity::ok);
     }

@@ -1,5 +1,6 @@
 package checkout.domain.product.service;
 
+import checkout.common.exception.DuplicateSkuException;
 import checkout.common.exception.ResourceNotFoundException;
 import checkout.domain.product.dto.CreateProductRequestDto;
 import checkout.domain.product.dto.ProductResponseDto;
@@ -27,8 +28,7 @@ public class ProductService {
         return productRepository.existsBySku(request.getSku())
                 .flatMap(exists -> {
                     if (exists) {
-                        return Mono.<Product>error(new IllegalArgumentException(
-                                "Product with SKU " + request.getSku() + " already exists"));
+                        return Mono.<Product>error(new DuplicateSkuException(request.getSku()));
                     }
 
                     Product product = Product.builder()

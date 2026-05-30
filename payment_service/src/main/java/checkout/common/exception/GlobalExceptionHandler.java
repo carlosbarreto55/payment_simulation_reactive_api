@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .errorCode("VALIDATION_ERROR")
-                .message("Erro de validação")
+                .message("Validation error")
                 .path(exchange.getRequest().getPath().value())
                 .validationErrors(validationErrors)
                 .build();
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .errorCode("INTERNAL_SERVER_ERROR")
-                .message("Erro interno do servidor")
+                .message("Internal server error")
                 .path(exchange.getRequest().getPath().value())
                 .build();
         

@@ -1,5 +1,6 @@
 package checkout.domain.customer.service;
 
+import checkout.common.exception.DuplicateDocumentException;
 import checkout.common.exception.ResourceNotFoundException;
 import checkout.common.exception.UnauthorizedException;
 import checkout.config.security.JwtAuthToken;
@@ -38,7 +39,7 @@ public class CustomerService {
                             .flatMap(exists -> {
                                 if (Boolean.TRUE.equals(exists)) {
                                     log.error("Document number already exists: {}", request.getDocumentNumber());
-                                    return Mono.error(new IllegalArgumentException("Document number already exists"));
+                                    return Mono.error(new DuplicateDocumentException(request.getDocumentNumber()));
                                 }
                                 Customer customer = buildCustomerFromRequest(request);
                                 customer.setUserId(userId);
