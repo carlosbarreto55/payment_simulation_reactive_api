@@ -27,7 +27,7 @@ checkout/
 │   ├── ApiConstants.java
 │   ├── HeaderProcessor.java
 │   ├── enums/DocumentType.java
-│   └── exception/                        # 18 exception classes + handler
+│   └── exception/                        # 21 exception classes + ErrorResponse + handler
 ├── config/
 │   ├── infrastructure/
 │   │   ├── PaymentProviderConfig.java    # WebClient bean for AbacatePay
@@ -41,7 +41,7 @@ checkout/
     ├── customer/     # Customer CRUD with document validation
     ├── payment/      # Billing creation, AbacatePay integration
     ├── product/      # Product CRUD with stock management
-    └── paymentProvider/  # WebClient to AbacatePay (POST /v1/billing/create)
+    └── client/            # PaymentServiceClient WebClient wrapper to AbacatePay (POST /v1/billing/create)
 ```
 
 ### 2.2 Architecture Style
@@ -96,7 +96,7 @@ No ports, no adapters, no domain events, no aggregate roots, no value objects (e
 
 ### 2.4 Anti-Corruption Layer (Non-Existent)
 
-The `PaymentServiceClient` (a WebClient wrapper) and the external DTOs (`CreateBillingRequestExtDto`, `CreateBillingResponseExtDto`) live **inside** `domain/paymentProvider/` and `domain/payment/dto/`. This means:
+The `PaymentServiceClient` (a WebClient wrapper) lives in `domain/client/` and the external DTOs (`CreateBillingRequestExtDto`, `CreateBillingResponseExtDto`) live in `domain/payment/dto/`. This means:
 - Provider-specific JSON shapes leak into domain DTOs
 - No translation layer between external contract and domain model
 - The domain knows about `@JsonProperty("frequency")` — this should be in an infrastructure layer
@@ -139,7 +139,6 @@ The `PaymentServiceClient` (a WebClient wrapper) and the external DTOs (`CreateB
 | V9 | Default `USER` role seed |
 | V10 | Drops `orders` and `order_items` tables |
 | V11 | `products` table |
-| V12 | Recreates `payment_transactions` (decoupled from old FK chain) |
 | V13 | Add `external_id` column and index to `payment_intents` |
 
 ### 2.7 Infrastructure
@@ -165,7 +164,7 @@ The `PaymentServiceClient` (a WebClient wrapper) and the external DTOs (`CreateB
 | BUG-02 | High | `IllegalArgumentException` for duplicate document | Resolved: replaced with `DuplicateDocumentException` |
 | BUG-03 | High | `IllegalArgumentException` for duplicate SKU | Resolved: replaced with `DuplicateSkuException` |
 | BUG-04 | High | `data.getAmount()` deprecated by AbacatePay API | Resolved: computed from `PaymentIntent.amount` |
-| BUG-05 | Medium | Error messages in Portuguese | Resolved: changed to English |
+| BUG-05 | Medium | Error messages in Portuguese | Partially resolved: `DuplicateIdempotencyKeyException`, `UserAlreadyExistsException`, and `GlobalExceptionHandler` messages translated to English. **Remaining:** 13 exception classes still contain Portuguese messages (`ResourceNotFoundException`, `InvalidCredentialsException`, `OrderNotFoundException`, `OrderCancellationNotAllowedException`, `InvalidPaymentStatusException`, `OrderAlreadyPaidException`, `PaymentAlreadyProcessedException`, `RefundNotAllowedException`, `PaymentNotFoundException`, `InvalidTokenException`, `PaymentMethodNotSupportedException`, `InvalidOrderStatusException`, `RiskAnalysisDeniedException`) |
 | STUB-01 | Info | Empty `PaymentTransactionService.java` | Removed |
 | STUB-02 | Info | Empty `PaymentWebhookHandler.java` | Removed |
 | STUB-03 | Info | Empty V13 migration | Populated with `external_id` column + index |
@@ -416,6 +415,7 @@ The domain layer knows only the `PaymentProviderPort` interface. The infrastruct
 |---|---|---|---|
 | 1.0 | 2026-05-28 | AI + dev | Initial specification: current state audit + target architecture |
 | 1.1 | 2026-05-28 | AI + dev | Phase 1 complete: 5 bugs fixed, 5 tech foundation tasks (Dockerfile, API v1, cleanup, V13 migration) |
+| 1.2 | 2026-05-30 | AI + dev | Post-PR audit corrections: exception count (18→21), BUG-05 marked partial, removed non-existent V12 migration, fixed PaymentServiceClient path (`domain/client/` not `domain/paymentProvider/`) |
 
 ---
 
