@@ -1,7 +1,7 @@
 ---
 description: Analyzes requirements and produces implementation plans and interface contracts.
 mode: subagent
-model: opencode-go/kimi-k2.6
+model: opencode-go/deepseek-v4-pro
 permission:
   edit: deny
   bash: allow

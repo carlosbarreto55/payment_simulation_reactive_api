@@ -265,103 +265,14 @@
 - **Verification**: Integration test with Testcontainers MySQL
 - **SPEC**: Update 4.1: infrastructure persistence implemented
 
-### TASK INFRA-05: Implement Outbox event publisher
-- **Status**: ⬜ Pending
-- **Files**: `common/infrastructure/messaging/OutboxEventPublisher.java`, `OutboxEventRepository.java`
-- **What**: Repository for `outbox_events` table. Publisher inserts events into outbox table atomically with domain changes (same transaction). Poller or Post-commit hook dispatches events.
-- **Verification**: Integration test: save PaymentIntent + event → event appears in outbox table
-- **SPEC**: Update 4.2 Domain Events: outbox publisher implemented
-
-### TASK INFRA-06: Add Resilience4j Circuit Breaker
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/payment/infrastructure/provider/AbacatePayClient.java` (or config)
-- **What**: Wrap all `PaymentProviderPort` calls with `@CircuitBreaker(name = "abacatePay")`. Configure: sliding window 10, failure rate ≥50% → open, wait 30s → half-open, 5 calls to confirm. Add fallback that returns `Mono.error(new PaymentProviderUnavailableException(...))`.
-- **Verification**: Integration test: mock HTTP server fails → circuit opens → fallback triggers
-- **SPEC**: Update 4.5 Resilience Targets: circuit breaker added
-
-### TASK INFRA-07: Add custom Prometheus metrics
-- **Status**: ⬜ Pending
-- **Files**: `config/metrics/PaymentMetrics.java` (Micrometer binders)
-- **What**: Counters: `payment.intents.created`, `payment.intents.approved`, `payment.intents.denied`, `payment.provider.errors`. Timer: `payment.provider.call.duration`. Register in PaymentDomainService and AbacatePayClient.
-- **Verification**: `GET /actuator/prometheus` shows custom metrics
-- **SPEC**: Update 4.6 Observability Targets: metrics implemented
-
-### TASK INFRA-08: Add correlation ID propagation
-- **Status**: ⬜ Pending
-- **Files**: `common/infrastructure/web/CorrelationIdWebFilter.java`, update `AbacatePayClient.java`
-- **What**: WebFilter extracts/generates `X-Correlation-ID` header, stores in MDC/Reactor context. Propagates to AbacatePay HTTP calls. Logs correlation ID in structured log format (JSON).
-- **Verification**: Curl with header → response echoes same header; AbacatePay request includes it
-- **SPEC**: Update 4.5: correlation ID added
-
-### TASK INFRA-09: Add rate limiting on auth endpoints
-- **Status**: ⬜ Pending
-- **File**: `config/security/RateLimitingWebFilter.java`
-- **What**: Redis-backed rate limiter using `redisson` (already a dependency). Limit: 5 login attempts per IP per minute, 3 register attempts per IP per 10 minutes. Returns HTTP 429 with `Retry-After` header.
-- **Verification**: Send 6 rapid login requests → 5th returns 200, 6th returns 429
-- **SPEC**: Update 4.5: rate limiting added
-
-### TASK INFRA-10: Implement webhook handler
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/payment/infrastructure/provider/WebhookVerifier.java`, update `PaymentController.java`
-- **What**: Handler for `POST /api/v1/payments/billing/webhook`. Verifies AbacatePay webhook signature (HMAC). Processes billing status updates (PAID, EXPIRED, CANCELLED). Dispatches appropriate domain events.
-- **Verification**: Integration test: simulate webhook payload → PaymentIntent transitions to APPROVED
-- **SPEC**: Update 4.3: webhook endpoint implemented
-
----
-
-## Phase 5 — Application Layer & Controller Refactoring
-
-### TASK API-01: Create application service for payment use cases
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/payment/application/PaymentApplicationService.java`
-- **What**: Use case orchestration (NOT domain logic). Methods: `createBilling(CreateBillingRequestDto, IdempotencyKey)`, `getBilling(PaymentIntentId)`, `listBillings()`, `cancelBilling(PaymentIntentId)`, `handleWebhook(WebhookPayload)`. Delegates to `PaymentDomainService` and `PaymentProviderPort`. Handles transaction boundaries.
-- **Verification**: Unit test with mocked domain service
-- **SPEC**: Update 4.1: application service added
-
-### TASK API-02: Rewrite PaymentController with v1 prefix and proper param
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/payment/api/PaymentController.java`
-- **What**: Use `/api/v1/payments`. Extract `X-Idempotency-Key` header properly. Delegate to `PaymentApplicationService`. Add endpoints for get, list, cancel, webhook. Add `@Valid` on request body.
-- **Verification**: WebTestClient integration test
-- **SPEC**: Update 4.3: all payment endpoints marked implemented
-
-### TASK API-03: Rewrite User/Auth controller with v1 prefix
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/user/api/AuthController.java`
-- **What**: Move from `domain/user/controller/UserController.java`. Rename to `AuthController`. Prefix `/api/v1/auth`.
-- **Verification**: WebTestClient integration test
-- **SPEC**: Update 4.3: auth endpoints confirmed
-
-### TASK API-04: Rewrite Customer controller with v1 prefix
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/customer/api/CustomerController.java`
-- **What**: Move from `domain/customer/controller/CustomerController.java`. Prefix `/api/v1/customers`.
-- **Verification**: WebTestClient integration test
-- **SPEC**: Update 4.3: customer endpoints confirmed
-
-### TASK API-05: Rewrite Product controller with v1 prefix
-- **Status**: ⬜ Pending
-- **File**: `boundedcontext/product/api/ProductController.java`
-- **What**: Move from `domain/product/controller/ProductController.java`. Prefix `/api/v1/products`.
-- **Verification**: WebTestClient integration test
-- **SPEC**: Update 4.3: product endpoints confirmed
-
-### TASK API-06: Separate controller DTOs from domain DTOs
+### TASK INFRA-05: Separate controller DTOs from domain DTOs
 - **Status**: ⬜ Pending
 - **What**: Ensure each bounded context has `api/dto/` for HTTP contracts and domain objects are never leaked in API responses. Controllers return API DTOs, not domain objects.
 - **Verification**: No domain entity/VO appears in controller method signatures or return types
 - **SPEC**: Update 4.3: API DTO separation confirmed
-
-### TASK API-07: Update OpenAPI spec to match v1 reality
-- **Status**: ⬜ Pending
-- **File**: `resources/openapi/api-spec.yaml`
-- **What**: Add all payment endpoints (list, get, cancel, webhook). Add `X-Idempotency-Key` header documentation. Update all paths to `/api/v1/...`. Document error responses for all endpoints. Add security scheme reference on all protected endpoints.
-- **Verification**: Swagger UI renders complete spec
-- **SPEC**: Update 2.5, 4.3: spec matches implementation
-
 ---
-
-## Phase 6 — Testing
+---
+## Phase 5— Testing
 
 ### TASK TEST-01: Unit tests for Money value object
 - **Status**: ✅ Completed
@@ -502,16 +413,13 @@ FIX-05 ──┘
 
 ## Task Counting Summary
 
-| Phase | Tasks |
-|---|---|
-| Phase 1 (Bug Fixes + Tech Foundation) | 10 |
-| Phase 2 (Value Objects) | 9 |
-| Phase 3 (Aggregates + Domain Services) | 7 |
+| Phase                                       | Tasks |
+|---------------------------------------------|---|
+| Phase 1 (Bug Fixes + Tech Foundation)       | 10 |
+| Phase 2 (Value Objects)                     | 9 |
+| Phase 3 (Aggregates + Domain Services)      | 7 |
 | Phase 4 (Infrastructure + ACL + Resilience) | 10 |
-| Phase 5 (Controllers + API) | 7 |
-| Phase 6 (Testing) | 10 |
-| Phase 7 (DevOps + Docs) | 6 |
-| **Total** | **59 tasks** |
+| Phase 5(Testing)                            | 10 |
 
 ---
 

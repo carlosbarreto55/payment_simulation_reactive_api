@@ -1,7 +1,7 @@
 ---
 description: Primary orchestrator that enforces the Architect → TDD Tester → Developer → Security Analyst → Tester → Code Reviewer workflow loop.
 mode: primary
-model: opencode-go/kimi-k2.6
+model: opencode-go/deepseek-v4-pro
 ---
 
 # Orchestrator

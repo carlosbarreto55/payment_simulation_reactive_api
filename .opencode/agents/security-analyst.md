@@ -1,7 +1,7 @@
 ---
 description: Reviews every code change for security vulnerabilities and compliance.
 mode: subagent
-model: opencode-go/kimi-k2.6
+model: opencode-go/deepseek-v4-pro
 permission:
   edit: deny
   bash: allow

@@ -1,7 +1,7 @@
 ---
 description: Implements code based on architect plans and tester specs.
 mode: subagent
-model: opencode-go/kimi-k2.6
+model: opencode-go/deepseek-v4-pro
 permission:
   edit: allow
   bash: allow
