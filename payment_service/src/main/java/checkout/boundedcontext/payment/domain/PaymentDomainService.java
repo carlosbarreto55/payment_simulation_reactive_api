@@ -1,12 +1,12 @@
 package checkout.boundedcontext.payment.domain;
 
 import checkout.boundedcontext.payment.domain.port.CreateBillingDomainRequest;
+import checkout.boundedcontext.payment.domain.port.ExternalBillingResponse;
 import checkout.boundedcontext.payment.domain.port.PaymentProviderPort;
 import checkout.boundedcontext.payment.domain.repository.PaymentIntentRepository;
 import checkout.common.domain.event.DomainEvent;
 import checkout.common.domain.event.EventBus;
 import checkout.common.domain.valueobject.Money;
-import checkout.common.exception.DuplicateIdempotencyKeyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -30,26 +30,14 @@ public class PaymentDomainService {
                     if (Boolean.TRUE.equals(exists)) {
                         return paymentIntentRepository.findByIdempotencyKey(idempotencyKey);
                     }
-                    Money totalAmount = calculateTotalFromProducts(request.products());
-                    PaymentIntent intent = PaymentIntent.initiate(
-                            idempotencyKey, totalAmount, request.methods(),
-                            null,
-                            request.products()
-                    );
+                    PaymentIntent intent = buildPaymentInitiation(request, idempotencyKey);
                     return paymentIntentRepository.save(intent);
                 })
                 .flatMap(this::publishEventsAndClear)
                 .flatMap(savedIntent -> {
                     log.info("PaymentIntent persisted. id={}, calling PSP", savedIntent.getId());
                     return paymentProviderPort.createBilling(request)
-                            .flatMap(response -> {
-                                savedIntent.process(
-                                        ExternalBillingId.of(response.billingId()),
-                                        response.status()
-                                );
-                                return paymentIntentRepository.save(savedIntent)
-                                        .flatMap(this::publishEventsAndClear);
-                            })
+                            .flatMap(response -> processAndSavePaymentIntent(savedIntent, response))
                             .onErrorResume(error -> {
                                 log.error("PSP call failed. paymentIntentId={}, error={}",
                                         savedIntent.getId(), error.getMessage());
@@ -58,6 +46,24 @@ public class PaymentDomainService {
                                         .flatMap(this::publishEventsAndClear);
                             });
                 });
+    }
+
+    private Mono<PaymentIntent> processAndSavePaymentIntent(PaymentIntent savedIntent, ExternalBillingResponse response) {
+        savedIntent.process(
+                ExternalBillingId.of(response.billingId()),
+                response.status()
+        );
+        return paymentIntentRepository.save(savedIntent)
+                .flatMap(this::publishEventsAndClear);
+    }
+
+    private PaymentIntent buildPaymentInitiation(CreateBillingDomainRequest request, IdempotencyKey idempotencyKey) {
+        Money totalAmount = calculateTotalFromProducts(request.products());
+        return PaymentIntent.initiate(
+                idempotencyKey, totalAmount, request.methods(),
+                null,
+                request.products()
+        );
     }
 
     public Mono<PaymentIntent> getPaymentIntent(PaymentIntentId id) {
