@@ -25,56 +25,56 @@
 
 | Phase | Total | Completed | Remaining | Status |
 |---|---|---|---|---|
-| Phase 1 — Bug Fixes & Tech Foundation | 10 | 0 | 10 | ⬜ Not Started |
-| Phase 2 — DDD Value Objects | 9 | 0 | 9 | ⬜ Not Started |
-| Phase 3 — Aggregates & Domain Services | 7 | 0 | 7 | ⬜ Not Started |
+| Phase 1 — Bug Fixes & Tech Foundation | 10 | 9 | 1 | 🔄 In Progress |
+| Phase 2 — DDD Value Objects | 9 | 9 | 0 | ✅ Complete |
+| Phase 3 — Aggregates & Domain Services | 7 | 7 | 0 | ✅ Complete |
 | Phase 4 — Infrastructure & ACL | 10 | 0 | 10 | ⬜ Not Started |
 | Phase 5 — Controllers & API | 7 | 0 | 7 | ⬜ Not Started |
-| Phase 6 — Testing | 10 | 0 | 10 | ⬜ Not Started |
+| Phase 6 — Testing | 10 | 2 | 8 | 🔄 In Progress |
 | Phase 7 — DevOps & Docs | 6 | 0 | 6 | ⬜ Not Started |
-| **Overall** | **59** | **0** | **59** | ⬜ **0%** |
+| **Overall** | **59** | **27** | **32** | 🔄 **~46%** |
 
 ---
 
 ## Phase 1 — Critical Bug Fixes & Technical Foundation
 
 ### TASK FIX-01: Fix PaymentController missing idempotencyKey parameter
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `domain/payment/controller/PaymentController.java`
 - **What**: Extract `X-Idempotency-Key` header in controller, pass to service method
 - **Verification**: Compiles; curl with and without header returns appropriate errors
 - **SPEC**: Update 3. Known Issues: mark BUG-01 as resolved
 
 ### TASK FIX-02: Replace IllegalArgumentException with custom exceptions
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **Files**: `CustomerService.java:41`, `ProductService.java:30`
 - **What**: Create `DuplicateDocumentException` and `DuplicateSkuException` (extending `BusinessRuleException`), replace `IllegalArgumentException` throws
 - **Verification**: Compiles; exception handler returns proper HTTP 409
 - **SPEC**: Update 3. Known Issues: mark BUG-02, BUG-03 as resolved
 
 ### TASK FIX-03: Fix deprecated amount usage in PaymentMapper
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `domain/payment/mapper/PaymentMapper.java:67`
 - **What**: Remove `data.getAmount()` usage. Compute `amountInCents` from `PaymentIntent.amount` instead. The response DTO `CreateBillingResponseDto` should derive amount from the domain object, not the deprecated provider field.
 - **Verification**: Response still contains valid `amountInCents`
 - **SPEC**: Update 3. Known Issues: mark BUG-04 as resolved
 
 ### TASK FIX-04: Fix hardcoded refresh token expiration
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **Files**: `JwtService.java:35`, `AuthenticationService.java:38`
 - **What**: (a) Move `refreshTokenExpirationTime` to `application.properties` as `JWT_REFRESH_TOKEN_EXPIRATION`. (b) Fix `refreshTokenExpirationDate` to compute `LocalDateTime.now().plusSeconds(...)` lazily instead of at bean creation.
 - **Verification**: Refresh tokens honor config value, not hardcoded 86400
 - **SPEC**: Update 3. Known Issues: mark GAP-03, GAP-04, GAP-05 as resolved
 
 ### TASK FIX-05: Fix error messages to English
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `common/exception/GlobalExceptionHandler.java:70,88`
 - **What**: Change "Erro de validação" → "Validation error" and "Erro interno do servidor" → "Internal server error"
 - **Verification**: Error responses have English messages
 - **SPEC**: Update 3. Known Issues: mark BUG-05 as resolved
 
 ### TASK TECH-01: Add proper Dockerfile
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `payment_service/Dockerfile`
 - **What**: Multi-stage build: (1) `maven:3.9-eclipse-temurin-21` for `mvn package -DskipTests`, (2) `eclipse-temurin:21-jre-alpine` for runtime. Copy JAR, set ENTRYPOINT.
 - **Verification**: `docker build -t payment-service .` succeeds
@@ -88,21 +88,21 @@
 - **SPEC**: Update 5. Technology Stack: Java 17 → 21
 
 ### TASK TECH-03: Add API versioning prefix
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **Files**: All controllers, `SecurityConfig.java`, `JwtAuthWebFilter.java`, `api-spec.yaml`
 - **What**: Prefix all endpoints with `/v1` (e.g. `/api/v1/auth/login`). Update security config public paths. Update OpenAPI spec.
 - **Verification**: All endpoints respond at `/api/v1/...`; `/api/...` returns 404
 - **SPEC**: Update 2.5 Current API Surface, 4.3 Target API Surface
 
 ### TASK TECH-04: Delete empty/stub files
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **Files**: `PaymentTransactionService.java`, `PaymentWebhookHandler.java`, `V13__add_external_id_to_payment_intents.sql`
 - **What**: Remove empty files that provide no value
 - **Verification**: Compiles; no references to deleted classes
 - **SPEC**: Update 3. Known Issues: mark STUB-01, STUB-02, STUB-03 as resolved
 
 ### TASK TECH-05: Populate V13 migration with actual SQL
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `V13__add_external_id_to_payment_intents.sql`
 - **What**: Add `external_id VARCHAR(255)` column and index to `payment_intents` table
 - **Verification**: `./mvnw flyway:migrate` succeeds on clean DB
@@ -113,63 +113,63 @@
 ## Phase 2 — DDD Foundation: Value Objects
 
 ### TASK DDD-01: Create Money value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `common/domain/valueobject/Money.java`
 - **What**: Immutable record with `BigDecimal amount`, `String currency`. Factory methods: `ofCents(int)`, `zero()`, `ofBrl(BigDecimal)`. Methods: `add(Money)`, `subtract(Money)`, `isGreaterThan(Money)`, `toCents()`, `equals/hashCode`.
 - **Verification**: Unit test for equality, arithmetic, immutability, edge cases (null, negative)
 - **SPEC**: Update 4.2 Value Objects: mark Money as implemented
 
 ### TASK DDD-02: Create PaymentStatus value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/payment/domain/PaymentStatus.java`
 - **What**: Enum with states: `PENDING`, `PROCESSING`, `APPROVED`, `DENIED`, `REFUNDED`. Method: `canTransitionTo(PaymentStatus target)` returning boolean with valid transitions. Method: `isTerminal()`.
 - **Verification**: Unit test for all valid transitions, all invalid transitions
 - **SPEC**: Update 4.2 Value Objects: mark PaymentStatus as implemented
 
 ### TASK DDD-03: Create PaymentMethod value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/payment/domain/PaymentMethod.java`
 - **What**: Replace raw `List<String>` and existing `PaymentMethod` enum. Enum with `PIX`, `CARD`. Static factory `fromAbacatePay(String)`. Method `toAbacatePayString()`. List has `List<PaymentMethod>` validation (1-2 elements, unique).
 - **Verification**: Unit test for all valid/invalid conversions
 - **SPEC**: Update 4.2: PaymentMethod VO implemented
 
 ### TASK DDD-04: Create PaymentIntentId value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/payment/domain/PaymentIntentId.java`
 - **What**: Immutable record wrapping `Long`. Factory `PaymentIntentId.of(Long)`, validation (non-null, positive). `equals/hashCode/toString`.
 - **Verification**: Unit test for null rejection, equality
 - **SPEC**: Update 4.2: PaymentIntentId VO implemented
 
 ### TASK DDD-05: Create IdempotencyKey value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/payment/domain/IdempotencyKey.java`
 - **What**: Immutable record wrapping `String`. Factory `IdempotencyKey.of(String)` with non-blank validation. `equals/hashCode/toString`.
 - **Verification**: Unit test for null/blank rejection, equality
 - **SPEC**: Update 4.2: IdempotencyKey VO implemented
 
 ### TASK DDD-06: Create ExternalBillingId value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/payment/domain/ExternalBillingId.java`
 - **What**: Immutable record wrapping `String`. Factory `ExternalBillingId.of(String)` with non-blank validation.
 - **Verification**: Unit test
 - **SPEC**: Update 4.2: ExternalBillingId VO implemented
 
 ### TASK DDD-07: Create CustomerId value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/customer/domain/CustomerId.java`
 - **What**: Immutable record wrapping `Long`. Same conventions as PaymentIntentId.
 - **Verification**: Unit test
 - **SPEC**: Update 4.2: CustomerId VO implemented
 
 ### TASK DDD-08: Create SKU value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/product/domain/SKU.java`
 - **What**: Immutable record wrapping `String`. Validation: non-blank, length 3-50, uppercase alphanumeric.
 - **Verification**: Unit test for validation
 - **SPEC**: Update 4.2: SKU VO implemented
 
 ### TASK DDD-09: Refactor Document into proper value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: Move `Document.java` to `boundedcontext/customer/domain/Document.java`
 - **What**: Make immutable (remove `@Data`, use record or `@Value`). Add CPF/CNPJ format validation in constructor. Add `Document.from(DocumentType, String)` factory with validation.
 - **Verification**: Unit test for CPF/CNPJ format validation
@@ -180,14 +180,14 @@
 ## Phase 3 — DDD Core: Aggregate Roots & Domain Services
 
 ### TASK DDD-10: Create DomainEvent base class and EventBus port
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **Files**: `common/domain/event/DomainEvent.java`, `common/domain/event/EventBus.java`
 - **What**: Base interface `DomainEvent` with `eventId`, `occurredAt`, `aggregateId`. Port interface `EventBus` with `publish(DomainEvent): Mono<Void>`.
 - **Verification**: Compiles; interfaces are defined
 - **SPEC**: Update 4.1 Target Architecture: domain events foundation
 
 ### TASK DDD-11: Rebuild PaymentIntent as aggregate root
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **File**: `boundedcontext/payment/domain/PaymentIntent.java`
 - **What**: Remove `@Data @Builder @NoArgsConstructor @AllArgsConstructor`. Use `@Getter` only. Constructor with invariant validation. Use `PaymentIntentId`, `Money`, `PaymentStatus`, `IdempotencyKey`, `PaymentMethod` VOs. Add `PaymentTransaction` as child entity (1:N list). Add methods:
   - `PaymentIntent.initiate(idempotencyKey, amount, methods, customerId, products)` → static factory, returns new PaymentIntent in PENDING state, raises `PaymentInitiated`
@@ -199,35 +199,35 @@
 - **SPEC**: Update 4.2 PaymentIntent Aggregate, mark implemented
 
 ### TASK DDD-12: Rebuild PaymentTransaction as child entity
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **File**: `boundedcontext/payment/domain/PaymentTransaction.java`
 - **What**: Remove `@Data`. Struct with `ExternalBillingId`, `String providerStatus`, `Instant processedAt`. Factory: `PaymentTransaction.record(externalId, providerStatus)`. Immutable after creation. Moved inside `PaymentIntent` as static inner or top-level with package-private constructor.
 - **Verification**: Unit test for immutability
 - **SPEC**: Update 4.2: PaymentTransaction implemented
 
 ### TASK DDD-13: Create domain events for Payment context
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **Files**: `boundedcontext/payment/domain/event/PaymentInitiated.java`, `PaymentProcessed.java`, `PaymentApproved.java`, `PaymentDenied.java`, `PaymentRefunded.java`
 - **What**: Each event is a record implementing `DomainEvent`. Carries relevant data (paymentIntentId, amount, timestamp, provider status, reason).
 - **Verification**: Compiles; events carry correct payload
 - **SPEC**: Update 4.2 Domain Events: mark Payment events as implemented
 
 ### TASK DDD-14: Create PaymentProviderPort interface
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **File**: `boundedcontext/payment/domain/port/PaymentProviderPort.java`
 - **What**: Interface in domain layer: `Mono<ExternalBillingResponse> createBilling(CreateBillingDomainRequest)`, `Mono<ExternalBillingResponse> getBilling(ExternalBillingId)`, `Mono<ExternalBillingResponse> cancelBilling(ExternalBillingId)`, `Mono<List<ExternalBillingResponse>> listBillings()`. Domain request/response objects (not external DTOs).
 - **Verification**: Compiles; interface defines domain contracts
 - **SPEC**: Update 4.4 ACL Design: port interface added
 
 ### TASK DDD-15: Create payment domain service
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **File**: `boundedcontext/payment/domain/PaymentDomainService.java`
 - **What**: Stateless domain service for operations that don't belong to a single aggregate: `Mono<PaymentIntent> initiatePayment(CreateBillingRequest, IdempotencyKey)` — checks idempotency, creates PaymentIntent, publishes event. Uses `PaymentProviderPort` and `PaymentIntentRepository` (domain repository interface, not Spring Data).
 - **Verification**: Unit test with mocked ports
 - **SPEC**: Update 4.1: PaymentDomainService added
 
 ### TASK DDD-16: Define domain repository interfaces
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed (2026-05-30)
 - **Files**: `boundedcontext/payment/domain/repository/PaymentIntentRepository.java`, `PaymentTransactionRepository.java`
 - **What**: These are DOMAIN-layer interfaces (not Spring Data). Define: `save(PaymentIntent): Mono<PaymentIntent>`, `findById(PaymentIntentId): Mono<PaymentIntent>`, `existsByIdempotencyKey(IdempotencyKey): Mono<Boolean>`, `findByIdWithTransactions(PaymentIntentId): Mono<PaymentIntent>`.
 - **Verification**: Compiles; Spring Data repos will implement these in infrastructure
@@ -364,13 +364,13 @@
 ## Phase 6 — Testing
 
 ### TASK TEST-01: Unit tests for Money value object
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `common/domain/valueobject/MoneyTest.java`
 - **What**: Test creation, `ofCents()`, `add()`, `subtract()`, `isGreaterThan()`, edge cases (overflow, null, zero)
 - **Verification**: `./mvnw test -Dtest=MoneyTest`
 
 ### TASK TEST-02: Unit tests for PaymentStatus transitions
-- **Status**: ⬜ Pending
+- **Status**: ✅ Completed
 - **File**: `boundedcontext/payment/domain/PaymentStatusTest.java`
 - **What**: Parametrized test: valid transitions pass, invalid transitions throw. All 5×5 combinations covered.
 - **Verification**: `./mvnw test -Dtest=PaymentStatusTest`

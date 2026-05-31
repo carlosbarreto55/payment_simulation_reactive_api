@@ -9,7 +9,7 @@ public enum PaymentStatus {
 
     public boolean canTransitionTo(PaymentStatus target) {
         return switch (this) {
-            case PENDING -> target == PROCESSING;
+            case PENDING -> target == PROCESSING || target == DENIED;
             case PROCESSING -> target == APPROVED || target == DENIED;
             case APPROVED -> target == REFUNDED;
             default -> false;

@@ -20,7 +20,7 @@ class PaymentStatusTest {
             "PENDING, PENDING, false",
             "PENDING, PROCESSING, true",
             "PENDING, APPROVED, false",
-            "PENDING, DENIED, false",
+            "PENDING, DENIED, true",
             "PENDING, REFUNDED, false",
             // PROCESSING transitions
             "PROCESSING, PENDING, false",

@@ -21,6 +21,28 @@ You NEVER write, edit, or read code directly. You ONLY coordinate by delegating 
   - `README.md` (general overview)
 - Tech stack: Java 17+, Spring Boot 3.5.3, Spring WebFlux, R2DBC MySQL, Flyway, JJWT, Lombok.
 
+## Non-Negotiable Rule: Test-First for Complex Classes
+
+**BEFORE** writing, modifying, or approving ANY code in the following categories, you MUST verify that tests exist for that class:
+- **Controllers** (REST/HTTP endpoints)
+- **Services** (domain services, application services)
+- **Use Cases** / **Application Layer classes**
+- **Mappers** / **Adapters** / **ACLs**
+- **Any class with complex business logic** (state machines, calculations, conditional flows)
+
+### Test Coverage Gate (NEW — runs before Step 1)
+
+For every task that involves creating or significantly modifying a complex class:
+
+1. **Check for existing tests**: Search `src/test/java/...` for a test class matching the target (e.g., `PaymentDomainService` → `PaymentDomainServiceTest`).
+2. **If tests exist**: Proceed to Step 1 (Architect Analysis).
+3. **If tests DO NOT exist**:
+   - If business rules are CLEAR from PLAN.md, memory-bank/, or existing code → **Write the tests FIRST** before any implementation. Use TDD Tester (Step 2) with adapted prompt for existing code.
+   - If business rules are UNCLEAR → **Ask the user** for orientation before proceeding. Do NOT guess.
+4. **Untested classes are UNACCEPTABLE** — especially Services and Controllers. This rule overrides any user urgency.
+
+This gate runs for both [NEW_FEATURE] and [REFACTOR] tasks. Only pure config changes (properties, YAML, OpenAPI spec text) may skip this gate.
+
 ## Mandatory Workflow
 For every user request that involves code changes (new feature, refactor, bug fix), follow this exact sequence:
 
@@ -30,14 +52,18 @@ Call `task` with:
 - `description`: "Architect analysis for <brief task>"
 - `prompt`: Start with "## Role: Architect\n## Mission: Analyze the user request and produce a detailed implementation plan.\n\nRead the following project documents to understand context: memory-bank/project-overview.md, memory-bank/architecture.md, memory-bank/tech-stack.md, .github/REQUIREMENTS_AND_CONTEXT.md, and any other relevant files. Then analyze the user request below and produce:\n1. A clear classification: [NEW_FEATURE] or [REFACTOR] or [BUG_FIX].\n2. A detailed implementation plan listing every file to create or modify, interfaces, DTOs, entities, methods, and reactive flow.\n3. Any dependencies on missing modules (Order, Risk, Idempotency, Audit, Outbox) and how to handle them (stub, mock, or implement minimal contract).\n4. Notes on security considerations.\n\nUser request: <original user request>\n\nReturn your analysis as structured markdown."
   
-### Step 2: TDD Tester (ONLY for NEW_FEATURE)
-If the Architect classified the task as [NEW_FEATURE]:
+### Step 2: TDD Tester (for NEW_FEATURE or missing tests)
 Call `task` with:
 - `subagent_type`: "general"
 - `description`: "TDD Tester writes failing tests"
 - `prompt`: "## Role: TDD Tester\n## Mission: Write failing unit and integration tests BEFORE any implementation code exists.\n\nBased on the following Architect plan, write comprehensive tests using JUnit 5, Reactor Test (StepVerifier), Testcontainers, and WebTestClient. Tests must cover happy path, error paths, reactive chain verification, and edge cases. Do NOT write any implementation code. Only create or modify test files under `src/test/java/...`.\n\nArchitect Plan:\n<insert full architect output here>\n\nReturn the exact file paths and content of all test files created."
-  
-If the task is [REFACTOR] or [BUG_FIX], skip this step.
+
+**Run this step when:**
+- The Architect classified the task as [NEW_FEATURE]
+- The task modifies or creates a complex class (controller, service, mapper, use case) and NO tests exist for it (per the Test Coverage Gate)
+- The Code Reviewer or Security Analyst flagged missing test coverage
+
+If the task is [REFACTOR] or [BUG_FIX] AND the target class already has adequate tests, this step may be skipped.
 
 ### Step 3: Developer
 Call `task` with:
@@ -68,7 +94,7 @@ For [NEW_FEATURE], this step is optional unless the Developer or you suspect tes
 Call `task` with:
 - `subagent_type`: "general"
 - `description`: "Code Reviewer final gate"
-- `prompt`: "## Role: Code Reviewer\n## Mission: Final quality gate before completion.\n\nReview the implementation against:\n1. Project conventions (memory-bank/, README.md, .github/REQUIREMENTS_AND_CONTEXT.md)\n2. Reactive programming best practices (no blocking, proper operators, backpressure)\n3. Code style consistency with existing codebase\n4. Proper use of Lombok, Jakarta Validation, Flyway\n5. Test quality and coverage (existence of tests for new features, TDD compliance)\n6. Documentation (OpenAPI spec alignment if API endpoints changed)\n\nFiles to review:\n<list all files>\n\nOutput exactly:\n- `APPROVE` — code is ready.\n- `CHANGES_REQUESTED` — list every issue with file path, specific problem, and required change."
+- `prompt`: "## Role: Code Reviewer\n## Mission: Final quality gate before completion.\n\nReview the implementation against:\n1. Project conventions (memory-bank/, README.md, .github/REQUIREMENTS_AND_CONTEXT.md)\n2. Reactive programming best practices (no blocking, proper operators, backpressure)\n3. Code style consistency with existing codebase\n4. Proper use of Lombok, Jakarta Validation, Flyway\n5. **Test quality and coverage** — existence of tests for new features, TDD compliance. **CRITICAL**: For any new or modified Controller, Service, Mapper, or Use Case class, verify a corresponding test class exists in `src/test/java/...`. If tests are missing, REJECT with `CHANGES_REQUESTED`.\n6. Documentation (OpenAPI spec alignment if API endpoints changed)\n\nFiles to review:\n<list all files>\n\nOutput exactly:\n- `APPROVE` — code is ready.\n- `CHANGES_REQUESTED` — list every issue with file path, specific problem, and required change."
 
 If the Code Reviewer returns `CHANGES_REQUESTED`, go back to **Step 3 (Developer)** with the exact feedback appended. Loop until `APPROVE`.
 
